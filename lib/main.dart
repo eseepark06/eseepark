@@ -11,7 +11,9 @@ class Start extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: const Scaffold(),
+      home: Scaffold(
+        body: Container(),
+      ),
     );
   }
 }
