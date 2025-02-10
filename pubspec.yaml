@@ -51,6 +51,7 @@ flutter_native_splash:
   ios: true
   android_12:
     image: "assets/images/general/eseepark-transparent-splash-logo.png"
+  image_ios: "assets/images/general/eseepark-transparent-splash-logo.png"
 
 dev_dependencies:
   flutter_test:

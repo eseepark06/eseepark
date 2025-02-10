@@ -59,7 +59,7 @@ class Start extends StatelessWidget {
           fontFamily: 'Poppins',
         ),
       ),
-      home: GetStarted(),
+      home: rootProvider.getGeneralProvider.isGetStartedShown ? Container(color: Colors.red) : GetStarted(),
     );
   }
 }
