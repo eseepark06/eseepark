@@ -27,12 +27,22 @@ class _GetStartedState extends State<GetStarted> {
     GetStartedInfo(
         title: 'Find Parking in Seconds',
         subtitle: 'No more aimless searching, see available parking slots instantly',
-        image: 'image'
+        image: 'assets/images/getstarted/slide1.png'
     ),
     GetStartedInfo(
-        title: 'Real-Time Parking Updates dsd',
-        subtitle: 'No more aimless searching, see available parking slots instantly',
-        image: 'image'
+        title: 'Real-Time Parking Updates',
+        subtitle: 'Stay updated on parking status at a glance—no more aimless searching!',
+        image: 'assets/images/getstarted/slide1.png'
+    ),
+    GetStartedInfo(
+        title: 'Know Before You Go',
+        subtitle: 'Save time by checking available slots before heading out.',
+        image: 'assets/images/getstarted/slide1.png'
+    ),
+    GetStartedInfo(
+        title: 'Welcome to eSEEPark!',
+        subtitle: 'Making parking smarter, faster, and hassle-free for everyone!',
+        image: 'assets/images/getstarted/slide1.png'
     )
   ];
 
@@ -46,55 +56,108 @@ class _GetStartedState extends State<GetStarted> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              children: [
-                Container(
-                  margin: EdgeInsets.only(
-                      left: screenWidth * .05,
-                      right: screenWidth * .05
+            SizedBox(
+              height: screenHeight * 0.7,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Container(
+                      margin: EdgeInsets.only(
+                          left: screenWidth * .05,
+                          right: screenWidth * .05
+                      ),
+                      child: SizedBox(
+                        width: screenWidth * 0.9,
+                        child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            transitionBuilder: (Widget child, Animation<double> animation) {
+                              return FadeTransition(opacity: animation, child: child);
+                            },
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              key: ValueKey<String>(getStartedInfos[currentIndex].title),
+                              child: Text(getStartedInfos[currentIndex].title,
+                                textAlign: TextAlign.start,
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: screenSize * 0.026
+                                ),
+                              ),
+                            )
+                        ),
+                      ),
+                    ),
                   ),
-                  child: SizedBox(
-                    width: screenWidth * 0.9,
+                  SizedBox(height: screenHeight * .03),
+                  Container(
+                    height: screenHeight * 0.35,
                     child: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 200),
                         transitionBuilder: (Widget child, Animation<double> animation) {
                           return FadeTransition(opacity: animation, child: child);
                         },
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          key: ValueKey<String>(getStartedInfos[currentIndex].title),
-                          child: Text(getStartedInfos[currentIndex].title,
-                            textAlign: TextAlign.start,
-                            style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: screenSize * 0.03
-                            ),
-                          ),
-                        )
+                        key: ValueKey<String>(getStartedInfos[currentIndex].image),
+                        child: Image.asset(getStartedInfos[currentIndex].image)
                     ),
                   ),
-                ),
-                Container(
-                  color: Colors.red,
-                  height: screenHeight * 0.3,
-                ),
-              ],
+                  SizedBox(height: screenHeight * .03),
+                  Expanded(
+                    child: Container(
+                      color: Colors.orange,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: screenWidth * .05
+                      ),
+                      child: Text(getStartedInfos[currentIndex].subtitle,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: screenSize * 0.014
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            ElevatedButton(
-              onPressed: () {
-                  setState(() {
-                    if(currentIndex == 0) {
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: screenWidth * .06,
+                vertical: screenHeight * .05
+              ),
+              width: screenWidth,
+              child: ElevatedButton(
+                onPressed: () {
+                  if(currentIndex + 1 < getStartedInfos.length) {
+                    setState(() {
                       currentIndex++;
-                    } else {
-                      currentIndex--;
-                    }
-                  });
+                    });
+                  }
                 },
                 style: ElevatedButton.styleFrom(
-
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)
+                  ),
+                  padding: EdgeInsets.symmetric(
+                    vertical: screenHeight * 0.015
+                  ),
+                  backgroundColor: Color.lerp(Theme.of(context).colorScheme.primary, Colors.deepOrange, 0.6)
                 ),
-              child: Text('Next')
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  transitionBuilder: (Widget child, Animation<double> animation) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                  child: Text(getStartedInfos.length == currentIndex + 1 ? 'Get Started' : 'Next',
+                    textAlign: TextAlign.start,
+                    key: ValueKey<String>(getStartedInfos[currentIndex].title),
+                    style: TextStyle(
+                      fontSize: screenSize * 0.015,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+              ),
             )
           ],
         )
