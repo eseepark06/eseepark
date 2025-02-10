@@ -1,22 +1,28 @@
-import 'package:eseepark/providers/general/theme-provider.dart';
-import 'package:eseepark/screens/general/splashscreen.dart';
+import 'package:eseepark/providers/general/theme_provider.dart';
+import 'package:eseepark/providers/root_provider.dart';
+import 'package:eseepark/screens/general/get_started.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:get/get.dart';
 import 'package:provider/provider.dart';
-import 'globals.dart' as globals; // Import the globals file
+import 'globals.dart' as globals;
 
 void main() {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
   runApp(
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ChangeNotifierProvider(create: (_) => RootProvider()),
         ],
         child: const Start(),
       )
@@ -36,20 +42,24 @@ class Start extends StatelessWidget {
 
     if (!themeProvider.isInitialized) {
       return const MaterialApp(
+        debugShowCheckedModeBanner: false,
         home: Scaffold(
-          body: Center(child: CircularProgressIndicator()),
+          body: Center(child: CircularProgressIndicator(color: Colors.green)),
         ),
       );
     }
 
-    return MaterialApp(
+    final rootProvider = Provider.of<RootProvider>(context);
+    rootProvider.initializeData();
+
+    return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       theme: themeProvider.currentTheme.copyWith(
         textTheme: themeProvider.currentTheme.textTheme.apply(
-          fontFamily: 'HelveticaNeue',
+          fontFamily: 'Poppins',
         ),
       ),
-      home: const SplashScreen(),
+      home: GetStarted(),
     );
   }
 }
