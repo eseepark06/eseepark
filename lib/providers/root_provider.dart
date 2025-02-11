@@ -20,9 +20,9 @@ class RootProvider with ChangeNotifier {
   GeneralProvider get getGeneralProvider => generalProvider;
 
   Future<void> initializeData() async {
+    await generalProvider.initialize();
     await testProvider.initialize();
     await settingsProvider.initialize();
-    await generalProvider.initialize();
 
     FlutterNativeSplash.remove();
   }

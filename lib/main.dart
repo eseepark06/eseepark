@@ -1,6 +1,7 @@
 import 'package:eseepark/providers/general/theme_provider.dart';
 import 'package:eseepark/providers/root_provider.dart';
 import 'package:eseepark/screens/general/get_started.dart';
+import 'package:eseepark/screens/others/lobby.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -40,17 +41,19 @@ class Start extends StatelessWidget {
     globals.screenWidth = MediaQuery.of(context).size.width;
     globals.screenSize = globals.screenHeight + globals.screenWidth;
 
-    if (!themeProvider.isInitialized) {
-      return const MaterialApp(
+    final rootProvider = Provider.of<RootProvider>(context);
+    rootProvider.initializeData();
+
+
+  if (!rootProvider.getGeneralProvider.isInitialized) {
+    print('Getting value of: ${rootProvider.getGeneralProvider.isInitialized}');
+      return GetMaterialApp(
         debugShowCheckedModeBanner: false,
         home: Scaffold(
           body: Center(child: CircularProgressIndicator(color: Colors.green)),
         ),
       );
     }
-
-    final rootProvider = Provider.of<RootProvider>(context);
-    rootProvider.initializeData();
 
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
@@ -59,7 +62,7 @@ class Start extends StatelessWidget {
           fontFamily: 'Poppins',
         ),
       ),
-      home: rootProvider.getGeneralProvider.isGetStartedShown ? Container(color: Colors.red) : GetStarted(),
+      home: rootProvider.getGeneralProvider.isGetStartedShown ? Lobby() : GetStarted(),
     );
   }
 }

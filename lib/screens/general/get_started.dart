@@ -1,5 +1,9 @@
 import 'package:eseepark/globals.dart';
+import 'package:eseepark/providers/root_provider.dart';
+import 'package:eseepark/screens/others/lobby.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 
 class GetStartedInfo {
   final String title;
@@ -48,6 +52,7 @@ class _GetStartedState extends State<GetStarted> {
 
   @override
   Widget build(BuildContext context) {
+    final rootProvider = Provider.of<RootProvider>(context);
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.primary,
       appBar: AppBar(backgroundColor: Colors.transparent, scrolledUnderElevation: 0),
@@ -116,7 +121,7 @@ class _GetStartedState extends State<GetStarted> {
                           key: ValueKey<String>(getStartedInfos[currentIndex].subtitle),
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: screenSize * 0.014
+                            fontSize: screenSize * 0.015
                           ),
                         ),
                       ),
@@ -133,15 +138,17 @@ class _GetStartedState extends State<GetStarted> {
               ),
               width: screenWidth,
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if(currentIndex + 1 < getStartedInfos.length) {
                     setState(() {
                       currentIndex++;
                     });
                   } else {
-                    setState(() {
-                      currentIndex--;
-                    });
+                    bool status = await rootProvider.getGeneralProvider.setGetStartedValue(true);
+
+                    if(status) {
+                      Get.offAll(() => const Lobby());
+                    }
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -150,7 +157,7 @@ class _GetStartedState extends State<GetStarted> {
                   ),
                   elevation: 0,
                   padding: EdgeInsets.symmetric(
-                    vertical: screenHeight * 0.015
+                    vertical: screenHeight * 0.018
                   ),
                   backgroundColor: Color.lerp(Theme.of(context).colorScheme.primary, Colors.deepOrange, 0.4)
                 ),
