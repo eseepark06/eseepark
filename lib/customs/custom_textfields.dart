@@ -1,5 +1,9 @@
 import 'package:eseepark/globals.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/general/theme_provider.dart';
+import '../providers/root_provider.dart';
 
 class CustomTextFieldWithLabel extends StatefulWidget {
   final TextEditingController? controller;
@@ -7,10 +11,16 @@ class CustomTextFieldWithLabel extends StatefulWidget {
   final String placeholder;
   final TextStyle titleStyle;
   final TextStyle placeholderStyle;
+  final TextStyle? mainTextStyle;
   final Function(String)? onChanged;
   final Color? backgroundColor;
   final double? verticalPadding;
   final double? horizontalPadding;
+  final double? borderRadius;
+  final double? borderWidth;
+  final Color? disabledBorderColor;
+  final Color? enabledBorderColor;
+  final Color? focusedBorderColor;
 
   const CustomTextFieldWithLabel({
     super.key,
@@ -19,10 +29,16 @@ class CustomTextFieldWithLabel extends StatefulWidget {
     required this.placeholder,
     required this.titleStyle,
     required this.placeholderStyle,
+    this.mainTextStyle,
     this.onChanged,
     this.backgroundColor,
     this.verticalPadding,
-    this.horizontalPadding
+    this.horizontalPadding,
+    this.borderRadius,
+    this.borderWidth,
+    this.disabledBorderColor,
+    this.enabledBorderColor,
+    this.focusedBorderColor
   });
 
   @override
@@ -32,35 +48,79 @@ class CustomTextFieldWithLabel extends StatefulWidget {
 class _CustomTextFieldWithLabelState extends State<CustomTextFieldWithLabel> {
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return Container(
-      child: Column(
-        children: [
-          RichText(
-            text: TextSpan(
+      child: Theme(
+        data: themeProvider.currentTheme.copyWith(
+          textTheme: themeProvider.currentTheme.textTheme.apply(
+            fontFamily: 'Poppins',
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                TextSpan(
-                  text: widget.title,
-                  style: widget.titleStyle
-                )
-              ]
+                SizedBox(width: screenWidth * 0.03),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: widget.title,
+                        style: widget.titleStyle
+                      )
+                    ]
+                  ),
+                ),
+              ],
             ),
-          ),
-          SizedBox(height: screenHeight * 0.01),
-          TextFormField(
-            controller: widget.controller,
-            onChanged: widget.onChanged,
-            decoration: InputDecoration(
-              hintText: widget.placeholder,
-              fillColor: widget.backgroundColor,
-              isDense: true,
-              filled: true,
-              contentPadding: EdgeInsets.symmetric(
-                vertical: widget.verticalPadding ?? screenHeight * 0.01,
-                horizontal: widget.horizontalPadding ?? screenWidth * 0.02
-              )
+            SizedBox(height: screenHeight * 0.01),
+            TextFormField(
+              controller: widget.controller,
+              onChanged: widget.onChanged,
+              style: widget.mainTextStyle,
+              decoration: InputDecoration(
+                hintText: widget.placeholder,
+                hintStyle: widget.placeholderStyle,
+                fillColor: widget.backgroundColor,
+                isDense: true,
+                filled: true,
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: widget.verticalPadding ?? screenHeight * 0.01,
+                  horizontal: widget.horizontalPadding ?? screenWidth * 0.02
+                ),
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
+                    borderSide: BorderSide(
+                        color: widget.disabledBorderColor ?? Colors.transparent,
+                        width: widget.borderWidth ?? 0.0
+                    )
+                ),
+                disabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
+                    borderSide: BorderSide(
+                        color: widget.disabledBorderColor ?? Colors.transparent,
+                        width: widget.borderWidth ?? 0.0
+                    )
+                ),
+                enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
+                    borderSide: BorderSide(
+                        color: widget.enabledBorderColor ?? Colors.transparent,
+                        width: widget.borderWidth ?? 0.0
+                    )
+                ),
+                focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
+                    borderSide: BorderSide(
+                        color: widget.focusedBorderColor ?? Colors.transparent,
+                        width: widget.borderWidth ?? 0.0
+                    )
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
