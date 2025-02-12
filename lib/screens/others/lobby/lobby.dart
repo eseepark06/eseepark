@@ -1,6 +1,8 @@
 import 'package:eseepark/customs/custom_textfields.dart';
 import 'package:eseepark/globals.dart';
+import 'package:eseepark/screens/others/lobby/account_otp.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class Lobby extends StatefulWidget {
   const Lobby({super.key});
@@ -121,7 +123,7 @@ class _LobbyState extends State<Lobby> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Flexible(
-                            child: Text('By clicking next, you have read and agree to our Terms and Conditions and Privacy Policy',
+                            child: Text('By clicking next, you have read and agree to our Terms and Conditions and Privacy Policy.',
                               style: TextStyle(
                                   color: Colors.white,
                                   fontSize: screenSize * 0.009
@@ -131,7 +133,10 @@ class _LobbyState extends State<Lobby> {
                         SizedBox(width: screenWidth * 0.04),
                         Container(
                             child: ElevatedButton(
-                              onPressed: () {},
+                              onPressed: () => Get.to(() => const OTPAccount(),
+                                transition: Transition.cupertino,
+                                duration: const Duration(milliseconds: 400),
+                              ),
                               style: ElevatedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16.0),

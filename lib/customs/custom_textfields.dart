@@ -64,12 +64,12 @@ class _CustomTextFieldWithLabelState extends State<CustomTextFieldWithLabel> {
                 SizedBox(width: screenWidth * 0.03),
                 RichText(
                   text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: widget.title,
-                        style: widget.titleStyle
-                      )
-                    ]
+                      children: [
+                        TextSpan(
+                            text: widget.title,
+                            style: widget.titleStyle
+                        )
+                      ]
                   ),
                 ),
               ],
@@ -86,8 +86,8 @@ class _CustomTextFieldWithLabelState extends State<CustomTextFieldWithLabel> {
                 isDense: true,
                 filled: true,
                 contentPadding: EdgeInsets.symmetric(
-                  vertical: widget.verticalPadding ?? screenHeight * 0.01,
-                  horizontal: widget.horizontalPadding ?? screenWidth * 0.02
+                    vertical: widget.verticalPadding ?? screenHeight * 0.01,
+                    horizontal: widget.horizontalPadding ?? screenWidth * 0.02
                 ),
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
@@ -120,6 +120,99 @@ class _CustomTextFieldWithLabelState extends State<CustomTextFieldWithLabel> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class CustomTextField extends StatefulWidget {
+  final TextEditingController? controller;
+  final String? placeholder;
+  final TextStyle? placeholderStyle;
+  final TextStyle? mainTextStyle;
+  final Function(String)? onChanged;
+  final Color? backgroundColor;
+  final double? verticalPadding;
+  final double? horizontalPadding;
+  final double? borderRadius;
+  final double? borderWidth;
+  final Color? disabledBorderColor;
+  final Color? enabledBorderColor;
+  final Color? focusedBorderColor;
+  final Widget? prefixWidget;
+  final Icon? prefixIcon;
+
+  const CustomTextField({
+    super.key,
+    this.controller,
+    this.placeholder,
+    this.placeholderStyle,
+    this.mainTextStyle,
+    this.onChanged,
+    this.backgroundColor,
+    this.verticalPadding,
+    this.horizontalPadding,
+    this.borderRadius,
+    this.borderWidth,
+    this.disabledBorderColor,
+    this.enabledBorderColor,
+    this.focusedBorderColor,
+    this.prefixWidget,
+    this.prefixIcon
+  });
+
+  @override
+  State<CustomTextField> createState() => _CustomTextFieldState();
+}
+
+class _CustomTextFieldState extends State<CustomTextField> {
+  @override
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    return TextFormField(
+      controller: widget.controller,
+      onChanged: widget.onChanged,
+      style: widget.mainTextStyle,
+      decoration: InputDecoration(
+        hintText: widget.placeholder,
+        hintStyle: widget.placeholderStyle,
+        fillColor: widget.backgroundColor,
+        isDense: true,
+        filled: true,
+        prefix: widget.prefixWidget,
+        prefixIcon: widget.prefixIcon,
+        contentPadding: EdgeInsets.symmetric(
+            vertical: widget.verticalPadding ?? screenHeight * 0.01,
+            horizontal: widget.horizontalPadding ?? screenWidth * 0.02
+        ),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
+            borderSide: BorderSide(
+                color: widget.disabledBorderColor ?? Colors.transparent,
+                width: widget.borderWidth ?? 0.0
+            )
+        ),
+        disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
+            borderSide: BorderSide(
+                color: widget.disabledBorderColor ?? Colors.transparent,
+                width: widget.borderWidth ?? 0.0
+            )
+        ),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
+            borderSide: BorderSide(
+                color: widget.enabledBorderColor ?? Colors.transparent,
+                width: widget.borderWidth ?? 0.0
+            )
+        ),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
+            borderSide: BorderSide(
+                color: widget.focusedBorderColor ?? Colors.transparent,
+                width: widget.borderWidth ?? 0.0
+            )
         ),
       ),
     );

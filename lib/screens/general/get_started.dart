@@ -1,6 +1,6 @@
 import 'package:eseepark/globals.dart';
 import 'package:eseepark/providers/root_provider.dart';
-import 'package:eseepark/screens/others/lobby.dart';
+import 'package:eseepark/screens/others/lobby/lobby.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';

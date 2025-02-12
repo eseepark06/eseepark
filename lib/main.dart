@@ -1,7 +1,7 @@
 import 'package:eseepark/providers/general/theme_provider.dart';
 import 'package:eseepark/providers/root_provider.dart';
 import 'package:eseepark/screens/general/get_started.dart';
-import 'package:eseepark/screens/others/lobby.dart';
+import 'package:eseepark/screens/others/lobby/lobby.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';

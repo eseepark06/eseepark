@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 ThemeData light = ThemeData(
+  scaffoldBackgroundColor: const Color(0xFFF8F8FF),
+  cardColor: const Color(0xFFFFFFFF),
   colorScheme: ColorScheme.light(
-    primary: const Color(0xFFF09F1D)
+    primary: const Color(0xFFF09F1D),
+    secondary: const Color(0xFFDDDDDD),
   )
 );
