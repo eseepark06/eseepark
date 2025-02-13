@@ -7,9 +7,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'globals.dart' as globals;
 
-void main() {
+void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
 
   SystemChrome.setPreferredOrientations([
@@ -19,8 +20,13 @@ void main() {
 
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
+  await Supabase.initialize(
+    url: 'https://pqxkrecuksyiuaoxcuyx.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxeGtyZWN1a3N5aXVhb3hjdXl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk0MjIxMDEsImV4cCI6MjA1NDk5ODEwMX0.wp_3D6Ha2OyqFZFwRzPD2fArWE4L6EYDpFBzYgjTsi8',
+  );
+
   runApp(
-      MultiProvider(
+    MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => ThemeProvider()),
           ChangeNotifierProvider(create: (_) => RootProvider()),
