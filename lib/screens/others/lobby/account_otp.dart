@@ -7,7 +7,7 @@ import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:get/get.dart';
 import '../../../customs/custom_textfields.dart';
 import '../../../globals.dart';
-import '../home.dart';
+import '../home/home.dart';
 import '../hub.dart';
 
 class OTPAccount extends StatefulWidget {
