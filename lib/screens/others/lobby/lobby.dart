@@ -148,12 +148,39 @@ class _LobbyState extends State<Lobby> {
                                             email: emailController.text.trim()
                                         );
 
-
+                                        Get.to(() => const OTPAccount(),
+                                          duration: const Duration(milliseconds: 300),
+                                          transition: Transition.cupertino
+                                        );
                                       } catch(e) {
                                         print('Exception found: $e');
                                       }
+                                    } else if (check == 2) {
+                                      try {
+                                        final response = await supabase.auth.signUp(
+                                          email: emailController.text.trim(),
+                                          password: ''
+                                        );
 
+                                        if(response != null) {
+                                          await supabase.auth.signInWithOtp(
+                                            email: emailController.text.trim(),
+                                          );
 
+                                          Get.to(() => const OTPAccount(),
+                                              duration: const Duration(milliseconds: 300),
+                                              transition: Transition.cupertino
+                                          );
+                                        }
+                                      } catch(e) {
+                                        print('Exception found: $e');
+                                      }
+                                    } else {
+                                      print('Proceeded with a null value');
+                                      Get.to(() => const OTPAccount(),
+                                          duration: const Duration(milliseconds: 300),
+                                          transition: Transition.cupertino
+                                      );
                                     }
                                   }
 
