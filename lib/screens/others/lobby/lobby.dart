@@ -1,5 +1,7 @@
+import 'package:eseepark/controllers/auth/account_controller.dart';
 import 'package:eseepark/customs/custom_textfields.dart';
 import 'package:eseepark/globals.dart';
+import 'package:eseepark/main.dart';
 import 'package:eseepark/screens/others/lobby/account_otp.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -12,6 +14,9 @@ class Lobby extends StatefulWidget {
 }
 
 class _LobbyState extends State<Lobby> {
+  final accountController = AccountController();
+  final emailController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -133,10 +138,26 @@ class _LobbyState extends State<Lobby> {
                         SizedBox(width: screenWidth * 0.04),
                         Container(
                             child: ElevatedButton(
-                              onPressed: () => Get.to(() => const OTPAccount(),
-                                transition: Transition.cupertino,
-                                duration: const Duration(milliseconds: 400),
-                              ),
+                              onPressed: () async {
+                                  final check = await accountController.emailNextButton(emailController.text.trim());
+
+                                  if(check != null) {
+                                    if(check == 1) {
+                                      try {
+                                        await supabase.auth.signInWithOtp(
+                                            email: emailController.text.trim()
+                                        );
+
+
+                                      } catch(e) {
+                                        print('Exception found: $e');
+                                      }
+
+
+                                    }
+                                  }
+
+                                  },
                               style: ElevatedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16.0),

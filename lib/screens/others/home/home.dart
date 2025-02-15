@@ -145,11 +145,14 @@ class _HomeState extends State<Home> {
                                   SvgPicture.asset('assets/svgs/home/search.svg',
                                   ),
                                   SizedBox(width: screenWidth * 0.02),
-                                  Text('Where do you want to park?',
-                                    style: TextStyle(
-                                      fontSize: screenSize * 0.012,
-                                      color: const Color(0xFF808080),
-
+                                  Flexible(
+                                    child: Text('Where do you want to park?',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: screenSize * 0.012,
+                                        color: const Color(0xFF808080),
+                                    
+                                      ),
                                     ),
                                   )
                                 ],
@@ -235,11 +238,14 @@ class _HomeState extends State<Home> {
                                       SvgPicture.asset('assets/svgs/home/search.svg',
                                       ),
                                       SizedBox(width: screenWidth * 0.02),
-                                      Text('Where do you want to park?',
-                                        style: TextStyle(
-                                          fontSize: screenSize * 0.012,
-                                          color: const Color(0xFF808080),
-
+                                      Flexible(
+                                        child: Text('Where do you want to park?',
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: screenSize * 0.012,
+                                            color: const Color(0xFF808080),
+                                        
+                                          ),
                                         ),
                                       )
                                     ],

@@ -36,6 +36,8 @@ void main() async {
   );
 }
 
+final supabase = Supabase.instance.client;
+
 class Start extends StatelessWidget {
   const Start({super.key});
 
