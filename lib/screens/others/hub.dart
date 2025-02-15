@@ -1,4 +1,5 @@
 import 'package:eseepark/globals.dart';
+import 'package:eseepark/screens/others/accounts/account.dart';
 import 'package:eseepark/screens/others/home/home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -105,7 +106,7 @@ class _HubState extends State<Hub> {
                   const Home(),
                   Container(color: Colors.blue),
                   Container(color: Colors.red),
-                  Container(color: Colors.green),
+                  const Account(),
                 ],
               ),
             ),
