@@ -120,7 +120,7 @@ class _HubState extends State<Hub> {
                 )
               ),
               padding: EdgeInsets.only(
-                bottom: screenHeight * 0.02
+                bottom: screenHeight * 0.01
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
