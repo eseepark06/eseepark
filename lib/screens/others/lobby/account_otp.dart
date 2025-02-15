@@ -7,7 +7,7 @@ import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:get/get.dart';
 import '../../../customs/custom_textfields.dart';
 import '../../../globals.dart';
-import '../home.dart';
+import '../home/home.dart';
 import '../hub.dart';
 
 class OTPAccount extends StatefulWidget {
@@ -18,6 +18,8 @@ class OTPAccount extends StatefulWidget {
 }
 
 class _OTPAccountState extends State<OTPAccount> {
+  final codeController = TextEditingController();
+
   int codeSeconds = 300;
   Timer? _timer;
 
@@ -141,7 +143,12 @@ class _OTPAccountState extends State<OTPAccount> {
                                 fontWeight: FontWeight.bold
                               ),
                               onCodeChanged: (String code) {
-                                //handle validation or checks here if necessary
+                                setState(() {
+                                  codeController.text = code;
+                                });
+
+                                print('Code: ${codeController.text}');
+                                print('Length" ${codeController.text.length}');
                               },
                               //runs when every textfield is filled
                               onSubmit: (String verificationCode) {
@@ -205,10 +212,9 @@ class _OTPAccountState extends State<OTPAccount> {
                           horizontal: screenWidth * 0.07
                       ),
                       child: ElevatedButton(
-                        onPressed: () => Get.offAll(() => const Hub(),
-                          transition: Transition.cupertino,
-                          duration: const Duration(milliseconds: 700),
-                        ),
+                        onPressed: codeController.text.trim().length < 5 ? null : () {
+
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           elevation: 0,

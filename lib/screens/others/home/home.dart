@@ -1,9 +1,10 @@
 import 'package:eseepark/customs/custom_textfields.dart';
+import 'package:eseepark/screens/others/home/partials/parking_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../globals.dart';
+import '../../../globals.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -144,11 +145,14 @@ class _HomeState extends State<Home> {
                                   SvgPicture.asset('assets/svgs/home/search.svg',
                                   ),
                                   SizedBox(width: screenWidth * 0.02),
-                                  Text('Where do you want to park?',
-                                    style: TextStyle(
-                                      fontSize: screenSize * 0.012,
-                                      color: const Color(0xFF808080),
-
+                                  Flexible(
+                                    child: Text('Where do you want to park?',
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: screenSize * 0.012,
+                                        color: const Color(0xFF808080),
+                                    
+                                      ),
                                     ),
                                   )
                                 ],
@@ -234,11 +238,14 @@ class _HomeState extends State<Home> {
                                       SvgPicture.asset('assets/svgs/home/search.svg',
                                       ),
                                       SizedBox(width: screenWidth * 0.02),
-                                      Text('Where do you want to park?',
-                                        style: TextStyle(
-                                          fontSize: screenSize * 0.012,
-                                          color: const Color(0xFF808080),
-
+                                      Flexible(
+                                        child: Text('Where do you want to park?',
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: screenSize * 0.012,
+                                            color: const Color(0xFF808080),
+                                        
+                                          ),
                                         ),
                                       )
                                     ],
@@ -392,189 +399,200 @@ class _HomeState extends State<Home> {
                         padding: EdgeInsets.zero,
                         itemBuilder: (context, index) {
                           final establishment = selectedMenu == 0 ? establishments[index] : establishments.where((e) => int.parse(e.type) == selectedMenu).toList()[index];
-                          return Container(
-                            width: screenWidth,
-                            height: screenHeight * 0.33,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.01),
-                                  spreadRadius: 2,
-                                  blurRadius: 3
-                                )
-                              ]
-                            ),
-                            margin: EdgeInsets.only(bottom: screenHeight * 0.02),
-                            child: Stack(
-                              children: [
-                                Column(
-                                  children: [
-                                    Container(
-                                      height: screenHeight * 0.25,
-                                      decoration: BoxDecoration(
-                                        image: DecorationImage(
-                                          image: AssetImage(establishment.image),
-                                          fit: BoxFit.cover
+                          return InkWell(
+                            onTap: () {
+                              showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  builder: (context) {
+                                    return ParkingSheet();
+                                  }
+                              );
+                            },
+                            child: Container(
+                              width: screenWidth,
+                              height: screenHeight * 0.33,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.01),
+                                    spreadRadius: 2,
+                                    blurRadius: 3
+                                  )
+                                ]
+                              ),
+                              margin: EdgeInsets.only(bottom: screenHeight * 0.02),
+                              child: Stack(
+                                children: [
+                                  Column(
+                                    children: [
+                                      Container(
+                                        height: screenHeight * 0.25,
+                                        decoration: BoxDecoration(
+                                          image: DecorationImage(
+                                            image: AssetImage(establishment.image),
+                                            fit: BoxFit.cover
+                                          ),
+                                          borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20))
                                         ),
-                                        borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20))
+                                      ),
+                                    ],
+                                  ),
+                                  Positioned(
+                                    top: screenHeight * 0.01,
+                                    left: screenWidth * 0.03,
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: screenWidth * 0.04,
+                                          vertical: screenHeight * 0.003
+                                      ),
+                                      decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(30),
+                                          color: Theme.of(context).colorScheme.primary
+                                      ),
+                                      child: Text(parkingMenus[int.parse(establishment.type)].name, style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: screenSize * 0.0095,
+                                          fontWeight: FontWeight.w700
+                                      )),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 0,
+                                    right: 0,
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: screenWidth * 0.04,
+                                          vertical: screenHeight * 0.01
+                                      ),
+                                      decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.only(
+                                            topRight: Radius.circular(20),
+                                            bottomLeft: Radius.circular(20)
+                                          ),
+                                          color: Theme.of(context).colorScheme.primary
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Text(establishment.availableSlots.toString(), style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: screenSize * 0.012,
+                                              height: 1,
+                                              fontWeight: FontWeight.w700
+                                          )),
+                                          Text('slots',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              height: 1,
+                                              fontSize: screenSize * 0.0095,
+                                              fontWeight: FontWeight.w400
+                                            ),
+                                          )
+                                        ],
                                       ),
                                     ),
-                                  ],
-                                ),
-                                Positioned(
-                                  top: screenHeight * 0.01,
-                                  left: screenWidth * 0.03,
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: screenWidth * 0.04,
-                                        vertical: screenHeight * 0.003
-                                    ),
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(30),
-                                        color: Theme.of(context).colorScheme.primary
-                                    ),
-                                    child: Text(parkingMenus[int.parse(establishment.type)].name, style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: screenSize * 0.0095,
-                                        fontWeight: FontWeight.w700
-                                    )),
                                   ),
-                                ),
-                                Positioned(
-                                  top: 0,
-                                  right: 0,
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
+                                  Positioned(
+                                    bottom: 0,
+                                    left: 0,
+                                    right: 0,
+                                    child: Container(
+                                      height: screenHeight * 0.12,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        color: Colors.white
+                                      ),
+                                      padding: EdgeInsets.symmetric(
                                         horizontal: screenWidth * 0.04,
-                                        vertical: screenHeight * 0.01
-                                    ),
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.only(
-                                          topRight: Radius.circular(20),
-                                          bottomLeft: Radius.circular(20)
-                                        ),
-                                        color: Theme.of(context).colorScheme.primary
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        Text(establishment.availableSlots.toString(), style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: screenSize * 0.012,
-                                            height: 1,
-                                            fontWeight: FontWeight.w700
-                                        )),
-                                        Text('slots',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            height: 1,
-                                            fontSize: screenSize * 0.0095,
-                                            fontWeight: FontWeight.w400
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                Positioned(
-                                  bottom: 0,
-                                  left: 0,
-                                  right: 0,
-                                  child: Container(
-                                    height: screenHeight * 0.12,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      color: Colors.white
-                                    ),
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: screenWidth * 0.04,
-                                      vertical: screenHeight * 0.014
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Expanded(
-                                              child: Container(
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(establishment.name,
-                                                      maxLines: 1,
-                                                      overflow: TextOverflow.ellipsis,
+                                        vertical: screenHeight * 0.014
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Expanded(
+                                                child: Container(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(establishment.name,
+                                                        maxLines: 1,
+                                                        overflow: TextOverflow.ellipsis,
+                                                          style: TextStyle(
+                                                        fontSize: screenSize * 0.014,
+                                                        fontWeight: FontWeight.bold
+                                                      )),
+                                                      Text('${establishment.distance} kilometers away',
                                                         style: TextStyle(
-                                                      fontSize: screenSize * 0.014,
-                                                      fontWeight: FontWeight.bold
-                                                    )),
-                                                    Text('${establishment.distance} kilometers away',
-                                                      style: TextStyle(
-                                                        fontSize: screenSize * 0.0095,
-                                                        fontWeight: FontWeight.w400,
-                                                        color: const Color(0xFF808080)
+                                                          fontSize: screenSize * 0.0095,
+                                                          fontWeight: FontWeight.w400,
+                                                          color: const Color(0xFF808080)
+                                                        )
                                                       )
-                                                    )
-                                                  ],
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                            SizedBox(width: screenWidth * 0.02),
-                                            Row(
-                                              crossAxisAlignment: CrossAxisAlignment.center,
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Icon(Icons.star, size: screenSize * 0.014, color: Theme.of(context).colorScheme.primary),
-                                                SizedBox(width: screenWidth * 0.01),
-                                                Text(establishment.ratings.toString(),
-                                                  style: TextStyle(
-                                                    fontSize: screenSize * 0.011,
-                                                    fontWeight: FontWeight.w400
-                                                  )
-                                                )
-                                              ],
-                                            )
-                                          ],
-                                        ),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            RichText(
-                                              text: TextSpan(
+                                              SizedBox(width: screenWidth * 0.02),
+                                              Row(
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                mainAxisAlignment: MainAxisAlignment.center,
                                                 children: [
-                                                  TextSpan(text: '₱${establishment.price}', style: TextStyle(
+                                                  Icon(Icons.star, size: screenSize * 0.014, color: Theme.of(context).colorScheme.primary),
+                                                  SizedBox(width: screenWidth * 0.01),
+                                                  Text(establishment.ratings.toString(),
+                                                    style: TextStyle(
                                                       fontSize: screenSize * 0.011,
-                                                      fontFamily: 'HelveticaNeue',
-                                                      color: const Color(0xFF808080)
-                                                  )),
-                                                    TextSpan(
-                                                      text: establishment.succeedingCharge != null ? ' • First 4 hours' : ' • Fixed Parking Fee', style: TextStyle(
-                                                        fontSize: screenSize * 0.009,
-                                                        fontFamily: 'Poppins',
+                                                      fontWeight: FontWeight.w400
+                                                    )
+                                                  )
+                                                ],
+                                              )
+                                            ],
+                                          ),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              RichText(
+                                                text: TextSpan(
+                                                  children: [
+                                                    TextSpan(text: '₱${establishment.price}', style: TextStyle(
+                                                        fontSize: screenSize * 0.011,
+                                                        fontFamily: 'HelveticaNeue',
                                                         color: const Color(0xFF808080)
-                                                    )
+                                                    )),
+                                                      TextSpan(
+                                                        text: establishment.succeedingCharge != null ? ' • First 4 hours' : ' • Fixed Parking Fee', style: TextStyle(
+                                                          fontSize: screenSize * 0.009,
+                                                          fontFamily: 'Poppins',
+                                                          color: const Color(0xFF808080)
+                                                      )
 
-                                                    )
-                                                ]
-                                              )
-                                            ),
-                                            if(establishment.acceptsValet)
-                                              Text('Accepts Valet Parking',
-                                                style: TextStyle(
-                                                  fontSize: screenSize * 0.008,
-                                                  fontWeight: FontWeight.w400,
-                                                  color: const Color(0xFF808080)
-                                                ),
-                                              )
-                                          ],
-                                        )
-                                      ],
+                                                      )
+                                                  ]
+                                                )
+                                              ),
+                                              if(establishment.acceptsValet)
+                                                Text('Accepts Valet Parking',
+                                                  style: TextStyle(
+                                                    fontSize: screenSize * 0.008,
+                                                    fontWeight: FontWeight.w400,
+                                                    color: const Color(0xFF808080)
+                                                  ),
+                                                )
+                                            ],
+                                          )
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                )
-                              ],
-                            )
+                                  )
+                                ],
+                              )
+                            ),
                           );
                         }
                       )

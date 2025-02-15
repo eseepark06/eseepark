@@ -1,5 +1,5 @@
 import 'package:eseepark/globals.dart';
-import 'package:eseepark/screens/others/home.dart';
+import 'package:eseepark/screens/others/home/home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
