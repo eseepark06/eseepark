@@ -5,13 +5,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_otp_text_field/flutter_otp_text_field.dart';
 import 'package:get/get.dart';
+import 'package:supabase/supabase.dart';
 import '../../../customs/custom_textfields.dart';
 import '../../../globals.dart';
+import '../../../main.dart';
 import '../home/home.dart';
 import '../hub.dart';
 
 class OTPAccount extends StatefulWidget {
-  const OTPAccount({super.key});
+  final String email;
+  const OTPAccount({
+    super.key,
+    required this.email
+  });
 
   @override
   State<OTPAccount> createState() => _OTPAccountState();
@@ -144,15 +150,14 @@ class _OTPAccountState extends State<OTPAccount> {
                               ),
                               onCodeChanged: (String code) {
                                 setState(() {
-                                  codeController.text = code;
+                                  codeController.text = '';
                                 });
-
-                                print('Code: ${codeController.text}');
-                                print('Length" ${codeController.text.length}');
                               },
                               //runs when every textfield is filled
                               onSubmit: (String verificationCode) {
-
+                                setState(() {
+                                  codeController.text = verificationCode;
+                                });
                               },
                             ),
                           ),
@@ -212,8 +217,21 @@ class _OTPAccountState extends State<OTPAccount> {
                           horizontal: screenWidth * 0.07
                       ),
                       child: ElevatedButton(
-                        onPressed: codeController.text.trim().length < 5 ? null : () {
+                        onPressed: codeController.text.trim().length < 6 ? null : () async {
+                          final verifyOTP = await supabase.auth.verifyOTP(
+                              token: codeController.text.trim(),
+                              type: OtpType.email,
+                              email: widget.email
+                          );
 
+                          if(verifyOTP.session != null) {
+                            Get.offAll(() => const Hub(),
+                              transition: Transition.rightToLeft,
+                              duration: const Duration(milliseconds: 400)
+                            );
+                          } else {
+                            Get.snackbar('Error', 'Invalid OTP', backgroundColor: Colors.red, colorText: Colors.white, duration: const Duration(seconds: 2));
+                          }
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,

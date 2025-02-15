@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:eseepark/controllers/auth/account_controller.dart';
 import 'package:eseepark/customs/custom_textfields.dart';
 import 'package:eseepark/globals.dart';
@@ -90,6 +92,7 @@ class _LobbyState extends State<Lobby> {
                           SizedBox(height: screenHeight * 0.01),
                           CustomTextFieldWithLabel(
                             title: '',
+                            controller: emailController,
                             placeholder: 'Enter your email',
                             backgroundColor: Color(0xFFB2B2B2).withValues(alpha: 0.4),
                             titleStyle: TextStyle(
@@ -106,6 +109,9 @@ class _LobbyState extends State<Lobby> {
                                 color: Colors.white,
                                 fontSize: screenSize * 0.012
                             ),
+                            onChanged: (val) {
+                              setState(() {});
+                            },
                             horizontalPadding: screenWidth * 0.05,
                             verticalPadding: screenHeight * 0.02,
                             borderRadius: 30,
@@ -138,36 +144,41 @@ class _LobbyState extends State<Lobby> {
                         SizedBox(width: screenWidth * 0.04),
                         Container(
                             child: ElevatedButton(
-                              onPressed: () async {
+                              onPressed: emailController.text.trim().isEmpty ? null : () async {
                                   final check = await accountController.emailNextButton(emailController.text.trim());
 
                                   if(check != null) {
                                     if(check == 1) {
                                       try {
                                         await supabase.auth.signInWithOtp(
-                                            email: emailController.text.trim()
+                                            email: emailController.text.trim(),
                                         );
 
-                                        Get.to(() => const OTPAccount(),
+                                        print('Proceeding to sign in');
+
+                                        Get.to(() => OTPAccount(email: emailController.text.trim()),
                                           duration: const Duration(milliseconds: 300),
                                           transition: Transition.cupertino
                                         );
                                       } catch(e) {
                                         print('Exception found: $e');
                                       }
-                                    } else if (check == 2) {
+                                    }else {
+                                      print('Proceeded with a null value so signing upp');
                                       try {
                                         final response = await supabase.auth.signUp(
-                                          email: emailController.text.trim(),
-                                          password: ''
+                                            email: emailController.text.trim(),
+                                            password: Random().nextInt(10000000).toString()
                                         );
+
+                                        print('Proceeding to sign up');
 
                                         if(response != null) {
                                           await supabase.auth.signInWithOtp(
                                             email: emailController.text.trim(),
                                           );
 
-                                          Get.to(() => const OTPAccount(),
+                                          Get.to(() => OTPAccount(email: emailController.text.trim()),
                                               duration: const Duration(milliseconds: 300),
                                               transition: Transition.cupertino
                                           );
@@ -175,12 +186,6 @@ class _LobbyState extends State<Lobby> {
                                       } catch(e) {
                                         print('Exception found: $e');
                                       }
-                                    } else {
-                                      print('Proceeded with a null value');
-                                      Get.to(() => const OTPAccount(),
-                                          duration: const Duration(milliseconds: 300),
-                                          transition: Transition.cupertino
-                                      );
                                     }
                                   }
 

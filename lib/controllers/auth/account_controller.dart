@@ -3,32 +3,30 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../main.dart';
 
 class AccountController {
-  
+
   Future<int?> emailNextButton(String email) async {
     try {
-
-      print('doing');
+      print('Checking email: $email');
 
       final checkStatus = await supabase
           .from('profiles')
           .select()
-          .eq('email', email);
+          .eq('email', email.trim().toLowerCase())
+          .maybeSingle();
 
-      print(checkStatus);
+      print('Query result: $checkStatus');
 
-      if(checkStatus.isNotEmpty) {
+      if (checkStatus != null) {
         print('Existing: $checkStatus');
         return 1;
       } else {
-        print('Null');
-
+        print('Not Found');
         return 0;
       }
-      
-    } catch(e) {
+
+    } catch (e) {
       print('Exception found: $e');
+      return -1;
     }
-    
-    return null;
-  } 
+  }
 }
