@@ -182,6 +182,8 @@ class _LobbyState extends State<Lobby> {
                                               duration: const Duration(milliseconds: 300),
                                               transition: Transition.cupertino
                                           );
+                                        } else {
+                                          print('Exception found: $response');
                                         }
                                       } catch(e) {
                                         print('Exception found: $e');

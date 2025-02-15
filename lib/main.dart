@@ -2,6 +2,7 @@ import 'package:eseepark/providers/general/theme_provider.dart';
 import 'package:eseepark/providers/root_provider.dart';
 import 'package:eseepark/screens/general/get_started.dart';
 import 'package:eseepark/screens/others/hub.dart';
+import 'package:eseepark/screens/others/lobby/account_name.dart';
 import 'package:eseepark/screens/others/lobby/lobby.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -71,7 +72,7 @@ class Start extends StatelessWidget {
           fontFamily: 'Poppins',
         ),
       ),
-      home: rootProvider.getGeneralProvider.isGetStartedShown ? supabase.auth.currentUser != null ? const Hub() : const Lobby() : GetStarted(),
+      home: rootProvider.getGeneralProvider.isGetStartedShown ? supabase.auth.currentUser != null ? (supabase.auth.currentUser?.userMetadata?['name'] != null ? const Hub() : const AccountName()) : const Lobby() : GetStarted(),
     );
   }
 }

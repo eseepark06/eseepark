@@ -61,12 +61,8 @@ class _AccountState extends State<Account> {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: (supabase.auth.currentUser?.userMetadata?['first_name'] ?? 'Anonymous').toString(),
+                              text: (supabase.auth.currentUser?.userMetadata?['name'] ?? 'Anonymous').toString(),
                             ),
-                            if(supabase.auth.currentUser?.userMetadata?['last_name'] != null)
-                              TextSpan(
-                                  text: supabase.auth.currentUser?.userMetadata?['last_name']
-                              )
                           ],
                           style: TextStyle(
                             color: Colors.black,

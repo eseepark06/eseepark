@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:eseepark/screens/others/lobby/account_name.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -223,7 +224,7 @@ class _OTPAccountState extends State<OTPAccount> {
                           );
 
                           if(verifyOTP.session != null) {
-                            Get.offAll(() => const Hub(),
+                            Get.offAll(() => (supabase.auth.currentUser?.userMetadata?['first_name'] != null ? const Hub() : const AccountName()),
                               transition: Transition.rightToLeft,
                               duration: const Duration(milliseconds: 400)
                             );
