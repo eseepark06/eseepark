@@ -173,7 +173,7 @@ class _LobbyState extends State<Lobby> {
 
                                         print('Proceeding to sign up');
 
-                                        if(response != null) {
+                                        if(response.session != null) {
                                           await supabase.auth.signInWithOtp(
                                             email: emailController.text.trim(),
                                           );
