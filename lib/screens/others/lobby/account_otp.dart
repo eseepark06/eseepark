@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:eseepark/screens/others/lobby/account_name.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,9 +14,12 @@ import '../hub.dart';
 
 class OTPAccount extends StatefulWidget {
   final String email;
+  final bool isNewAccount;
+
   const OTPAccount({
     super.key,
-    required this.email
+    required this.email,
+    required this.isNewAccount
   });
 
   @override
@@ -24,6 +28,8 @@ class OTPAccount extends StatefulWidget {
 
 class _OTPAccountState extends State<OTPAccount> {
   final codeController = TextEditingController();
+
+  bool processingOtp = false;
 
   int codeSeconds = 300;
   Timer? _timer;
@@ -185,8 +191,18 @@ class _OTPAccountState extends State<OTPAccount> {
                                             fontFamily: 'Poppins',
                                             decoration: TextDecoration.underline
                                         ),
-                                        recognizer: TapGestureRecognizer()..onTap = () => startTimer(),
+                                        recognizer: TapGestureRecognizer()..onTap = () async {
+                                          if(codeSeconds < 0) {
+                                            await supabase.auth.resend(
+                                              type: OtpType.email,
+                                              email: widget.email
+                                            );
+                                          } else {
+                                            print('Code already sent');
+                                          }
+                                        },
                                       ),
+                                      if(codeSeconds > 0)
                                       TextSpan(
                                         text: ' in ${formatTime(codeSeconds)} ${codeSeconds > 60 ? 'minutes' : 'seconds'}',
                                         style: TextStyle(
@@ -217,14 +233,29 @@ class _OTPAccountState extends State<OTPAccount> {
                       ),
                       child: ElevatedButton(
                         onPressed: codeController.text.trim().length < 6 ? null : () async {
+
+                          if(processingOtp) {
+                            return;
+                          }
+
+                          FocusScope.of(context).unfocus();
+
+                          setState(() {
+                            processingOtp = true;
+                          });
+
                           final verifyOTP = await supabase.auth.verifyOTP(
                               token: codeController.text.trim(),
                               type: OtpType.email,
                               email: widget.email
                           );
 
+                          setState(() {
+                            processingOtp = false;
+                          });
+
                           if(verifyOTP.session != null) {
-                            Get.offAll(() => (supabase.auth.currentUser?.userMetadata?['first_name'] != null ? const Hub() : const AccountName()),
+                            Get.offAll(() => (supabase.auth.currentUser?.userMetadata?['name'] != null ? const Hub() : const AccountName()),
                               transition: Transition.rightToLeft,
                               duration: const Duration(milliseconds: 400)
                             );
@@ -243,7 +274,8 @@ class _OTPAccountState extends State<OTPAccount> {
                             horizontal: screenWidth * 0.06
                           )
                         ),
-                        child: Text('Done', style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenSize * 0.014),),
+                        child: processingOtp ? CupertinoActivityIndicator() :
+                          Text(widget.isNewAccount ? 'Next' : 'Done', style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenSize * 0.014),),
                       )
                   )
               )

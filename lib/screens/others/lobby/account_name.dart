@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -16,6 +17,7 @@ class AccountName extends StatefulWidget {
 }
 
 class _AccountNameState extends State<AccountName> {
+  bool processingName = false;
   final nameController = TextEditingController();
 
   @override
@@ -124,6 +126,17 @@ class _AccountNameState extends State<AccountName> {
                     child: ElevatedButton(
                       onPressed: nameController.text.trim().length < 8 ? null : () async {
 
+                        if(processingName) {
+                          return;
+                        }
+
+                        setState(() {
+                          processingName = true;
+                        });
+
+                        FocusScope.of(context).unfocus();
+
+
                         final modifyName = await supabase.auth.updateUser(
                             UserAttributes(
                               data: {
@@ -168,7 +181,7 @@ class _AccountNameState extends State<AccountName> {
                               horizontal: screenWidth * 0.06
                           )
                       ),
-                      child: Text('Finish Setup', style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenSize * 0.014),),
+                      child: processingName ? CupertinoActivityIndicator() : Text('Finish Setup', style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenSize * 0.014),),
                     )
                 )
             )

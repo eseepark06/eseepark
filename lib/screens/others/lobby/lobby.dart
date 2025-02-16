@@ -5,6 +5,7 @@ import 'package:eseepark/customs/custom_textfields.dart';
 import 'package:eseepark/globals.dart';
 import 'package:eseepark/main.dart';
 import 'package:eseepark/screens/others/lobby/account_otp.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -16,6 +17,7 @@ class Lobby extends StatefulWidget {
 }
 
 class _LobbyState extends State<Lobby> {
+  bool processingEmail = false;
   final accountController = AccountController();
   final emailController = TextEditingController();
 
@@ -143,55 +145,77 @@ class _LobbyState extends State<Lobby> {
                         ),
                         SizedBox(width: screenWidth * 0.04),
                         Container(
+                            constraints: BoxConstraints(minWidth: screenWidth * 0.3),
                             child: ElevatedButton(
                               onPressed: emailController.text.trim().isEmpty ? null : () async {
-                                  final check = await accountController.emailNextButton(emailController.text.trim());
 
-                                  if(check != null) {
-                                    if(check == 1) {
-                                      try {
-                                        await supabase.auth.signInWithOtp(
-                                            email: emailController.text.trim(),
-                                        );
+                                  if(!processingEmail) {
 
-                                        print('Proceeding to sign in');
+                                    FocusScope.of(context).unfocus();
 
-                                        Get.to(() => OTPAccount(email: emailController.text.trim()),
-                                          duration: const Duration(milliseconds: 300),
-                                          transition: Transition.cupertino
-                                        );
-                                      } catch(e) {
-                                        print('Exception found: $e');
-                                      }
-                                    }else {
-                                      print('Proceeded with a null value so signing upp');
-                                      try {
-                                        final response = await supabase.auth.signUp(
-                                            email: emailController.text.trim(),
-                                            password: Random().nextInt(10000000).toString()
-                                        );
+                                    setState(() {
+                                      processingEmail = true;
+                                    });
 
-                                        print('Proceeding to sign up');
+                                    final check = await accountController.emailNextButton(emailController.text.trim());
 
-                                        if(response.session != null) {
+                                    setState(() {
+                                      processingEmail = false;
+                                    });
+
+                                    if(check != null) {
+                                      if(check == 1) {
+                                        try {
                                           await supabase.auth.signInWithOtp(
                                             email: emailController.text.trim(),
                                           );
 
-                                          Get.to(() => OTPAccount(email: emailController.text.trim()),
+                                          print('Proceeding to sign in');
+
+                                          Get.to(() => OTPAccount(email: emailController.text.trim(), isNewAccount: false),
                                               duration: const Duration(milliseconds: 300),
                                               transition: Transition.cupertino
                                           );
-                                        } else {
-                                          print('Exception found: $response');
+                                        } catch(e) {
+                                          print('Exception found: $e');
                                         }
-                                      } catch(e) {
-                                        print('Exception found: $e');
+                                      }else {
+                                        print('Proceeded with a null value so signing upp');
+                                        try {
+                                          final response = await supabase.auth.signUp(
+                                              email: emailController.text.trim(),
+                                              password: Random().nextInt(10000000).toString()
+                                          );
+
+                                          print('Proceeding to sign up');
+
+                                          if(response.session != null) {
+                                            await supabase.auth.signInWithOtp(
+                                              email: emailController.text.trim(),
+                                            );
+
+                                            Get.to(() => OTPAccount(email: emailController.text.trim(), isNewAccount: true),
+                                                duration: const Duration(milliseconds: 300),
+                                                transition: Transition.cupertino
+                                            );
+                                          } else {
+                                            print('Sent: $response');
+
+                                            Get.to(() => OTPAccount(email: emailController.text.trim(), isNewAccount: true),
+                                                duration: const Duration(milliseconds: 300),
+                                                transition: Transition.cupertino
+                                            );
+                                          }
+                                        } catch(e) {
+                                          print('Exception found: $e');
+                                        }
                                       }
                                     }
                                   }
 
-                                  },
+
+
+                              },
                               style: ElevatedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16.0),
@@ -201,12 +225,12 @@ class _LobbyState extends State<Lobby> {
                                   horizontal: screenWidth * 0.06
                                 )
                               ),
-                              child: Row(
+                              child: processingEmail ? CupertinoActivityIndicator() : Row(
                                 children: [
                                   Text('Next',
                                     style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: screenSize * 0.014
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: screenSize * 0.014
                                     ),
                                   ),
                                   SizedBox(width: screenWidth * 0.01),

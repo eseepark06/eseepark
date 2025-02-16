@@ -2,6 +2,7 @@ import 'package:eseepark/customs/custom_widgets.dart';
 import 'package:eseepark/globals.dart';
 import 'package:eseepark/main.dart';
 import 'package:eseepark/screens/others/lobby/lobby.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -13,6 +14,8 @@ class Settings extends StatefulWidget {
 }
 
 class _SettingsState extends State<Settings> {
+  ValueNotifier<bool> processingLogout = ValueNotifier(false);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,30 +68,49 @@ class _SettingsState extends State<Settings> {
                             ),
                           ),
                         ),
-                        TextButton(
-                          onPressed: () async {
-                            try {
-                              await supabase.auth.signOut();
+                        ValueListenableBuilder<bool>(
+                          valueListenable: processingLogout,
+                          builder: (context, value, child) {
+                            return TextButton(
+                              onPressed: () async {
+                                try {
 
-                              Get.offAll(() => const Lobby(),
-                                transition: Transition.cupertino,
-                                duration: const Duration(milliseconds: 450)
-                              );
-                            } catch(e) {
-                              print('Exception: $e');
-                            }
-                          },
-                          style: ButtonStyle(
-                            padding: MaterialStateProperty.all(EdgeInsets.symmetric(
-                              horizontal: screenWidth * 0.05
-                            )),
-                            backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary),
-                          ),
-                          child: Text('Log Out',
-                            style: TextStyle(
-                                color: Colors.white
-                            ),
-                          ),
+                                  if(!value) {
+                                    setState(() {
+                                      processingLogout.value = true;
+                                    });
+
+                                    await supabase.auth.signOut();
+
+                                    setState(() {
+                                      processingLogout.value = false;
+                                    });
+
+                                    Get.offAll(() => const Lobby(),
+                                        transition: Transition.cupertino,
+                                        duration: const Duration(milliseconds: 450)
+                                    );
+                                  }
+
+                                } catch(e) {
+                                  print('Exception: $e');
+                                }
+                              },
+                              style: ButtonStyle(
+                                padding: MaterialStateProperty.all(EdgeInsets.symmetric(
+                                  horizontal: screenWidth * 0.05
+                                )),
+                                minimumSize: MaterialStateProperty.all(Size(screenWidth * 0.25, screenHeight * 0.05)),
+                                backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary),
+                              ),
+                              child: value ? CupertinoActivityIndicator(color: Colors.white) :
+                                Text('Log Out',
+                                  style: TextStyle(
+                                      color: Colors.white
+                                  ),
+                                ),
+                            );
+                          }
                         )
                       ],
                     )
