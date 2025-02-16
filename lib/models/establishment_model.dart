@@ -1,0 +1,95 @@
+import 'dart:convert';
+import 'package:eseepark/models/parking_rate_model.dart';
+import 'package:eseepark/models/parking_section_model.dart';
+
+
+
+class EstablishmentFields {
+  static final String establishmentId = 'establishment_id';
+  static final String name = 'name';
+  static final String address = 'address';
+  static final String contactNumber = 'contact_number';
+  static final String availabilityStatus = 'availability_status';
+  static final String establishmentType = 'establishment_type';
+  static final String createdAt = 'created_at';
+  static final String image = 'image';
+  static final String coordinates = 'coordinates';
+}
+
+class Establishment {
+  final String establishmentId;
+  final String name;
+  final String address;
+  final String contactNumber;
+  final String establishmentType;
+  final String availabilityStatus;
+  final DateTime createdAt;
+  final String? image;
+  final Map<String, dynamic> coordinates;
+
+  // Parking rate as an object
+  final ParkingRate? parkingRate;
+
+  final List<ParkingSection>? parkingSections;
+
+  Establishment({
+    required this.establishmentId,
+    required this.name,
+    required this.address,
+    required this.contactNumber,
+    required this.availabilityStatus,
+    required this.establishmentType,
+    required this.createdAt,
+    this.image,
+    required this.coordinates,
+    this.parkingRate,
+    this.parkingSections
+  });
+
+  factory Establishment.fromMap(Map<String, dynamic> map) {
+    return Establishment(
+      establishmentId: map[EstablishmentFields.establishmentId] as String? ?? '', // Default empty string
+      name: map[EstablishmentFields.name] as String? ?? 'Unknown',
+      address: map[EstablishmentFields.address] as String? ?? 'No address',
+      contactNumber: map[EstablishmentFields.contactNumber] as String? ?? 'No contact',
+      availabilityStatus: map[EstablishmentFields.availabilityStatus] as String? ?? 'Unknown',
+      establishmentType: map[EstablishmentFields.establishmentType] as String? ?? 'Unknown',
+      createdAt: map[EstablishmentFields.createdAt] != null
+          ? DateTime.parse(map[EstablishmentFields.createdAt] as String)
+          : DateTime.now(), // Default to now if null
+      image: map[EstablishmentFields.image] as String?, // Allow null for optional fields
+      coordinates: map[EstablishmentFields.coordinates] as Map<String, dynamic> ?? {},
+
+      // Handle parking_rate properly
+      parkingRate: map['parking_rate'] != null && map['parking_rate'] is Map<String, dynamic>
+          ? ParkingRate.fromMap(map['parking_rate'] as Map<String, dynamic>)
+          : null,
+
+      parkingSections: map['parking_sections'] is List
+          ? (map['parking_sections'] as List).map((x) => ParkingSection.fromMap(x as Map<String, dynamic>)).toList()
+          : null,
+    );
+  }
+
+
+  // Convert an instance to a Map
+  Map<String, dynamic> toMap() {
+    return {
+      EstablishmentFields.establishmentId: establishmentId,
+      EstablishmentFields.name: name,
+      EstablishmentFields.address: address ?? '',
+      EstablishmentFields.contactNumber: contactNumber ,
+      EstablishmentFields.availabilityStatus: availabilityStatus,
+      EstablishmentFields.establishmentType: establishmentType,
+      EstablishmentFields.createdAt: createdAt.toIso8601String(),
+      EstablishmentFields.image: image,
+      EstablishmentFields.coordinates: coordinates,
+      'parking_rate': parkingRate?.toMap(), // Include parking rate
+    };
+  }
+
+  String toJson() => json.encode(toMap());
+
+  factory Establishment.fromJson(String source) =>
+      Establishment.fromMap(json.decode(source));
+}

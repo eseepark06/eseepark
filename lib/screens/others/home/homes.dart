@@ -2,15 +2,12 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:dropdown_button2/dropdown_button2.dart';
-import 'package:eseepark/customs/custom_widgets.dart';
 import 'package:eseepark/models/establishment_model.dart';
-import 'package:eseepark/models/parking_slot_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../controllers/establishments/establishments_controller.dart';
 import '../../../../globals.dart';
-import '../../../../models/parking_section_model.dart';
 
 
 class Section {
@@ -40,7 +37,7 @@ class Slot {
 
   void incrementTime() {
     if (slotStatus == 'Occupied' && timeOccupied != null) {
-      timeOccupied = timeOccupied! + 1; // Increment time by 1 second
+      timeOccupied = timeOccupied! + 1;
     }
   }
 }
@@ -125,45 +122,37 @@ class _ParkingSheetState extends State<ParkingSheet> {
   String selectedValue = 'All';
   @override
   Widget build(BuildContext context) {
+    List<Slot> filteredSlots = slots;
+
+    // Filter based on the selected value
+    if (selectedValue == 'Free') {
+      filteredSlots = slots.where((slot) => slot.slotStatus == 'Available').toList();
+    } else if (selectedValue == 'Occupied') {
+      filteredSlots = slots.where((slot) => slot.slotStatus == 'Occupied').toList();
+    }
 
     return StreamBuilder(
       stream: _controller.getEstablishmentById(widget.establishmentId),
       builder: (context, snapshot) {
 
-      if (snapshot.hasError) {
-        print('Error found: ${snapshot.error}');
-        return Center(child: Text("Error loading data: ${snapshot.error}"));
-      }
+        if (snapshot.hasError) {
+          print('Error found: ${snapshot.error}');
+          return Center(child: Text("Error loading data: ${snapshot.error}"));
+        }
 
-      final establishment = snapshot.data;
+        final establishment = snapshot.data;
 
-      if (establishment == null) {
-        return Center(child: Text("No establishments available"));
-      }
-
-
-      // // Filter based on the selected value
-      // if (selectedValue == 'Free') {
-      //   filteredSlots = (establishment.parkingSections
-      //       ?.where((section) => section.parkingSlots!.where((slot) => slot.slotStatus == 'available').isNotEmpty)
-      //       .toList() ?? []).cast<ParkingSlot>();
-      //
-      //   print('filteredSlots: $filteredSlots');
-      //
-      // } else if (selectedValue == 'Occupied') {
-      //   filteredSlots = (establishment.parkingSections
-      //       ?.where((section) => section.parkingSlots!.where((slot) => slot.slotStatus == 'occupied').isNotEmpty)
-      //       .toList() ?? []).cast<ParkingSlot>();
-      // }
-
+        if (establishment == null) {
+          return Center(child: Text("No establishments available"));
+        }
         return Container(
           height: screenHeight * 0.83,
           child: Column(
             children: [
               Container(
                 padding: EdgeInsets.symmetric(
-                  vertical: screenHeight * 0.02,
-                  horizontal: screenWidth * 0.04
+                    vertical: screenHeight * 0.02,
+                    horizontal: screenWidth * 0.04
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -174,18 +163,17 @@ class _ParkingSheetState extends State<ParkingSheet> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(establishment.name,
-                            // maxLines: 2,
-                            // overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
+                              // maxLines: 2,
+                              // overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20,
 
-                            ),),
-                            Text('${establishment.parkingSections
-                                ?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.where((slot) => slot.slotStatus == 'available').length ?? 0)) ?? 0} Available Slot(s)',
-                            style: TextStyle(
-                              color: Color(0xff808080)
-                            ),)
+                              ),),
+                            Text('${establishment.parkingRate?.rateType} Available Slots',
+                              style: TextStyle(
+                                  color: Color(0xff808080)
+                              ),)
                           ],
                         ),
                       ),
@@ -194,10 +182,10 @@ class _ParkingSheetState extends State<ParkingSheet> {
                       onTap: () => Get.back(),
                       child: Container(
                         decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Color(0xffcacaca)
-                          ),
-                          shape: BoxShape.circle
+                            border: Border.all(
+                                color: Color(0xffcacaca)
+                            ),
+                            shape: BoxShape.circle
                         ),
                         padding: EdgeInsets.all(screenSize * 0.01),
                         child: Icon(Icons.close),
@@ -225,20 +213,20 @@ class _ParkingSheetState extends State<ParkingSheet> {
                       splashFactory: NoSplash.splashFactory,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: floorIndex == index ? Theme.of(context).colorScheme.primary : Color(0xffd9d9d9),
-                          borderRadius: BorderRadius.circular(30)
+                            color: floorIndex == index ? Theme.of(context).colorScheme.primary : Color(0xffd9d9d9),
+                            borderRadius: BorderRadius.circular(30)
                         ),
                         alignment: Alignment.center,
                         padding: EdgeInsets.symmetric(
-                          horizontal: screenWidth * 0.05
+                            horizontal: screenWidth * 0.05
                         ),
                         margin: EdgeInsets.only(
-                          left: index == 0 ? screenWidth * 0.03 : screenWidth * 0.045
+                            left: index == 0 ? screenWidth * 0.03 : screenWidth * 0.045
                         ),
                         child: Text('Floor ${index+1}',
                           style: TextStyle(
-                            color: floorIndex == index ? Color(0xffffffff) : Color(0xff545454),
-                            fontWeight: floorIndex == index ? FontWeight.bold : FontWeight.normal
+                              color: floorIndex == index ? Color(0xffffffff) : Color(0xff545454),
+                              fontWeight: floorIndex == index ? FontWeight.bold : FontWeight.normal
                           ),
                         ),
                       ),
@@ -376,45 +364,38 @@ class _ParkingSheetState extends State<ParkingSheet> {
               ),
               Expanded(
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.04
+                  ),
                   child: GridView.builder(
-                    itemCount: establishment.parkingSections
-                        ?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.where((slot) {
-                          bool isSorted = selectedValue == 'All' ? true : slot.slotStatus == (selectedValue == 'Free' ? 'available' : selectedValue);
-
-                          return isSorted;
-                    }).length ?? 0)) ?? 0,
+                    itemCount: filteredSlots.length, // Use filtered slots
+                    shrinkWrap: true,
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2, // Two columns
+                      crossAxisCount: 2,
                       crossAxisSpacing: 30,
                       mainAxisSpacing: 14,
                       childAspectRatio: 2.4,
                     ),
                     itemBuilder: (context, index) {
-                      // ✅ Explicitly define allSlots as a List of Maps
-                      final List<Map<String, dynamic>> allSlots = establishment.parkingSections
-                          ?.expand((section) => section.parkingSlots
-                          ?.map((slot) => {'section': section, 'slot': slot})
-                          .toList() ??
-                          <Map<String, dynamic>>[]) // Explicit type
-                          .toList()
-                          .cast<Map<String, dynamic>>() ?? []; // Use `.cast<>()` to enforce the correct type
+                      Slot slot = filteredSlots[index];
 
-                      if (index >= allSlots.length) return SizedBox(); // Prevents index errors
+                      String slotLabel = '${slot.slotSection.section}-${slot.slotNo}';
+                      String statusText = slot.slotStatus;
+                      String timeText = '';
 
-                      // ✅ Accessing section and slot correctly
-                      final ParkingSection section = allSlots[index]['section'] as ParkingSection;
-                      final ParkingSlot currentSlot = allSlots[index]['slot'] as ParkingSlot;
-
+                      if (slot.slotStatus == 'Occupied' && slot.timeOccupied != null) {
+                        int minutes = slot.timeOccupied! ~/ 60;
+                        int seconds = slot.timeOccupied! % 60;
+                        timeText = 'Occupied for: $minutes:${seconds.toString().padLeft(2, '0')}';
+                      }
 
                       return Container(
                         decoration: BoxDecoration(
-                          border: currentSlot.slotStatus == 'available'
-                              ? Border.all(width: .6, color: const Color(0xFFD1D1D1))
-                              : null,
-                          color: currentSlot.slotStatus == 'available'
-                              ? Colors.transparent
-                              : Theme.of(context).colorScheme.primary,
+                          border: slot.slotStatus == 'Available' ? Border.all(
+                            width: .6,
+                            color: const Color(0xFFD1D1D1),
+                          ) : null,
+                          color: slot.slotStatus == 'Available' ? Colors.transparent : Theme.of(context).colorScheme.primary,
                           borderRadius: BorderRadius.circular(11),
                         ),
                         alignment: Alignment.center,
@@ -422,18 +403,37 @@ class _ParkingSheetState extends State<ParkingSheet> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // Display Section-Number (A-1, A-2, B-1, etc.)
                             Text(
-                              '${section.name}-${currentSlot.slotNumber}',
+                              slotLabel,
                               style: TextStyle(
-                                fontSize: screenSize * 0.015,
-                                fontWeight: FontWeight.bold,
-                                height: 1,
-                                color: currentSlot.slotStatus == 'available' ? Colors.black : Colors.white,
+                                  fontSize: screenSize * 0.015,
+                                  fontWeight: FontWeight.bold,
+                                  height: 1,
+                                  color: slot.slotStatus == 'Available' ? Colors.black : Colors.white
                               ),
                             ),
-                            if (currentSlot.slotStatus != 'Under Maintenance')
-                              ParkingSlotTimer(slotStatus: currentSlot.slotStatus, timeTaken: currentSlot.timeTaken?.toString()),
+                            Container(
+                                child: slot.slotStatus != 'Under Maintenance' ?
+                                slot.slotStatus == 'Available' ?
+                                Container(
+                                    child: Text(
+                                      statusText,
+                                      style: TextStyle(
+                                        fontSize: screenSize * 0.01,
+                                        color: const Color(0xFF808080),
+                                        height: 1,
+                                      ),
+                                    )
+                                ) : Text(
+                                  timeText,
+                                  style: TextStyle(
+                                    fontSize: screenSize * 0.01,
+                                    color: Colors.white,
+                                    height: 1,
+                                  ),
+                                ) : Container()
+                            ),
+
                           ],
                         ),
                       );
@@ -442,67 +442,67 @@ class _ParkingSheetState extends State<ParkingSheet> {
                 ),
               ),
               Container(
-                padding: EdgeInsets.only(
-                  top: screenHeight * 0.03,
-                  bottom: screenHeight * 0.03,
-                  left: screenWidth * 0.05,
-                  right: screenWidth * 0.05
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
+                  padding: EdgeInsets.only(
+                      top: screenHeight * 0.03,
+                      bottom: screenHeight * 0.03,
+                      left: screenWidth * 0.05,
+                      right: screenWidth * 0.05
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
 
-                        },
-                        style: ElevatedButton.styleFrom(
-                          elevation: 0,
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14)
+                          },
+                          style: ElevatedButton.styleFrom(
+                              elevation: 0,
+                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14)
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: screenWidth * 0.04,
+                                  vertical: screenHeight * 0.017
+                              )
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Continue',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: screenSize * 0.014,
+                                    fontWeight: FontWeight.bold
+                                ),
+                              ),
+                              Icon(Icons.double_arrow_outlined,
+                                color: Colors.white,
+                                size: screenSize * 0.017,
+                              )
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: screenWidth * 0.06),
+                      Container(
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  width: 2.3
+                              ),
+                              borderRadius: BorderRadius.circular(8)
                           ),
                           padding: EdgeInsets.symmetric(
-                            horizontal: screenWidth * 0.04,
-                            vertical: screenHeight * 0.017
+                              vertical: screenHeight * 0.015,
+                              horizontal: screenWidth * 0.04
+                          ),
+                          child: Icon(Icons.info,
+                            color: Theme.of(context).colorScheme.primary,
                           )
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Continue',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: screenSize * 0.014,
-                                fontWeight: FontWeight.bold
-                              ),
-                            ),
-                            Icon(Icons.double_arrow_outlined,
-                              color: Colors.white,
-                              size: screenSize * 0.017,
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: screenWidth * 0.06),
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.primary,
-                          width: 2.3
-                        ),
-                        borderRadius: BorderRadius.circular(8)
-                      ),
-                      padding: EdgeInsets.symmetric(
-                        vertical: screenHeight * 0.015,
-                        horizontal: screenWidth * 0.04
-                      ),
-                      child: Icon(Icons.info,
-                        color: Theme.of(context).colorScheme.primary,
                       )
-                    )
-                  ],
-                )
+                    ],
+                  )
               )
             ],
           ),

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../globals.dart';
@@ -114,6 +116,86 @@ class _SectionItemState extends State<SectionItem> {
             )
           ],
         ),
+      ),
+    );
+  }
+}
+
+
+class ParkingSlotTimer extends StatefulWidget {
+  final String slotStatus;
+  final String? timeTaken;
+
+  const ParkingSlotTimer({
+    super.key,
+    required this.slotStatus,
+    this.timeTaken,
+  });
+
+  @override
+  _ParkingSlotTimerState createState() => _ParkingSlotTimerState();
+}
+
+class _ParkingSlotTimerState extends State<ParkingSlotTimer> {
+  late Timer _timer;
+  String elapsedTime = "N/A";
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateElapsedTime();
+    });
+
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      _updateElapsedTime();
+    });
+  }
+
+  void _updateElapsedTime() {
+    if (widget.slotStatus.trim().toLowerCase() == 'occupied' && widget.timeTaken != null) {
+      try {
+        DateTime startTime = DateTime.parse(widget.timeTaken!.trim()).toLocal();
+        Duration difference = DateTime.now().difference(startTime);
+        setState(() {
+          elapsedTime = _formatDuration(difference);
+        });
+      } catch (e) {
+        print("Error parsing timeTaken: $e");
+        setState(() {
+          elapsedTime = "Invalid Date";
+        });
+      }
+    } else {
+      setState(() {
+        elapsedTime = "N/A";
+      });
+    }
+  }
+
+
+  String _formatDuration(Duration duration) {
+    int hours = duration.inHours;
+    int minutes = (duration.inMinutes % 60);
+    int seconds = (duration.inSeconds % 60);
+    return '${hours.toString().padLeft(2, '0')}:'
+        '${minutes.toString().padLeft(2, '0')}:'
+        '${seconds.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      widget.slotStatus.trim().toLowerCase() == 'available' ? "Available" : "Occupied for: $elapsedTime",
+      style: TextStyle(
+        fontSize: screenSize * 0.01,
+        color: widget.slotStatus.trim().toLowerCase() == 'available' ? Colors.grey : Colors.white,
       ),
     );
   }
