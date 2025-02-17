@@ -4,7 +4,7 @@ import 'package:eseepark/globals.dart';
 import 'package:eseepark/screens/others/accounts/partials/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import 'package:intl/intl.dart';
 import '../../../customs/custom_widgets.dart';
 import '../../../main.dart';
 
@@ -16,6 +16,35 @@ class Account extends StatefulWidget {
 }
 
 class _AccountState extends State<Account> {
+
+  List<AccountStatus> statuses = [];
+
+  void initStatus() {
+    statuses = [
+      AccountStatus(
+        title: supabase.auth.currentUser?.emailConfirmedAt == null ? 'Not Verified' : 'Verified',
+        icon: supabase.auth.currentUser?.emailConfirmedAt == null ? Icons.email_outlined : Icons.verified_outlined,
+        backgroundColor: supabase.auth.currentUser?.emailConfirmedAt == null ? Colors.red : Colors.green,
+        fontColor: Colors.white,
+        fontWeight: FontWeight.w600,
+      ),
+      AccountStatus(
+        title: DateFormat.yMMMd().format(DateTime.parse(supabase.auth.currentUser!.createdAt.toString())),
+        icon: Icons.perm_contact_calendar_outlined,
+        backgroundColor: Colors.orange,
+        fontColor: Colors.white,
+        fontWeight: FontWeight.w600,
+      )
+    ];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    initStatus();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,17 +111,11 @@ class _AccountState extends State<Account> {
                     height: screenHeight * 0.03,
                     width: screenWidth,
                     child: ListView.builder(
-                      itemCount: 1,
+                      itemCount: statuses.length,
                       shrinkWrap: true,
                       scrollDirection: Axis.horizontal,
                       itemBuilder: (context, index) {
-                        return AccountStatus(
-                          title: supabase.auth.currentUser?.emailConfirmedAt == null ? 'Not Verified' : 'Verified',
-                          icon: supabase.auth.currentUser?.emailConfirmedAt == null ? Icons.email_outlined : Icons.verified_outlined,
-                          backgroundColor: supabase.auth.currentUser?.emailConfirmedAt == null ? Colors.red : Colors.green,
-                          fontColor: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        );
+                        return statuses[index];
                       },
                     ),
                   )
