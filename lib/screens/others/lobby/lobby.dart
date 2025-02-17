@@ -178,6 +178,19 @@ class _LobbyState extends State<Lobby> {
                                           );
                                         } catch(e) {
                                           print('Exception found: $e');
+                                          if(e.toString().contains('For security purposes, you can only request this after')) {
+                                            RegExp regExp = RegExp(r'(\d+) seconds');
+                                            Match? match = regExp.firstMatch(e.toString());
+
+                                            print(match?.group(1));
+
+                                            Get.to(() => OTPAccount(email: emailController.text.trim(), isNewAccount: false, codeInterval: int.parse(match?.group(1) ?? '0')),
+                                                duration: const Duration(milliseconds: 300),
+                                                transition: Transition.cupertino
+                                            );
+                                          } else {
+                                            print('doesnt contain');
+                                          }
                                         }
                                       }else {
                                         print('Proceeded with a null value so signing upp');
@@ -207,7 +220,21 @@ class _LobbyState extends State<Lobby> {
                                             );
                                           }
                                         } catch(e) {
-                                          print('Exception found: $e');
+                                          print('Exception foudnd: $e');
+
+                                          if(e.toString().contains('For security purposes, you can only request this after')) {
+                                            RegExp regExp = RegExp(r'(\d+) seconds');
+                                            Match? match = regExp.firstMatch(e.toString());
+
+                                            print(match);
+
+                                            Get.to(() => OTPAccount(email: emailController.text.trim(), isNewAccount: true, codeInterval: int.parse(match?.group(1) ?? '0')),
+                                                duration: const Duration(milliseconds: 300),
+                                                transition: Transition.cupertino
+                                            );
+                                          } else {
+                                            print('doesnt contain');
+                                          }
                                         }
                                       }
                                     }

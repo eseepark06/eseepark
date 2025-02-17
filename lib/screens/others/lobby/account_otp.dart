@@ -15,11 +15,13 @@ import '../hub.dart';
 class OTPAccount extends StatefulWidget {
   final String email;
   final bool isNewAccount;
+  final int? codeInterval;
 
   const OTPAccount({
     super.key,
     required this.email,
-    required this.isNewAccount
+    required this.isNewAccount,
+    this.codeInterval
   });
 
   @override
@@ -28,13 +30,22 @@ class OTPAccount extends StatefulWidget {
 
 class _OTPAccountState extends State<OTPAccount> {
   final codeController = TextEditingController();
-
+  String resendText = 'Resend Code';
   bool processingOtp = false;
 
   int codeSeconds = 300;
   Timer? _timer;
 
-  void startTimer() {
+  void checkIfCodeIntervalNotNull() async {
+    if (widget.codeInterval != null) {
+      startTimer(widget.codeInterval!);
+    } else {
+      startTimer(300);
+    }
+  }
+
+  void startTimer(int seconds) {
+    codeSeconds = seconds;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (codeSeconds > 0) {
         setState(() {
@@ -52,11 +63,25 @@ class _OTPAccountState extends State<OTPAccount> {
     return '$minutes:${secs.toString().padLeft(2, '0')}';
   }
 
+  String formatTimeFromMessage(String message) {
+    RegExp regExp = RegExp(r'(\d+) seconds');
+    Match? match = regExp.firstMatch(message);
+
+    if (match != null) {
+      int seconds = int.parse(match.group(1)!);
+      int minutes = seconds ~/ 60;
+      int secs = seconds % 60;
+      return '$minutes:${secs.toString().padLeft(2, '0')}';
+    }
+
+    return "Invalid time format"; // Fallback if no number is found
+  }
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    startTimer();
+    checkIfCodeIntervalNotNull();
   }
 
   @override
@@ -183,23 +208,49 @@ class _OTPAccountState extends State<OTPAccount> {
                                   text: TextSpan(
                                     children: [
                                       TextSpan(
-                                        text: 'Resend Code',
+                                        text: resendText,
                                         style: TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
-                                            fontSize: screenSize * 0.011,
+                                            fontSize: screenSize * 0.013,
                                             fontFamily: 'Poppins',
                                             decoration: TextDecoration.underline
                                         ),
                                         recognizer: TapGestureRecognizer()..onTap = () async {
-                                          if(codeSeconds < 0) {
-                                            await supabase.auth.resend(
-                                              type: OtpType.email,
-                                              email: widget.email
-                                            );
-                                          } else {
-                                            print('Code already sent');
+                                          try {
+
+                                            if(resendText == 'Resend Code') {
+
+                                              setState(() {
+                                                resendText = 'Resending...';
+                                              });
+
+                                              await supabase.auth.signInWithOtp(
+                                                email: widget.email.trim(),
+                                              );
+
+                                              setState(() {
+                                                resendText = 'Resend Code';
+                                              });
+
+                                              startTimer(300);
+                                            } else {
+
+                                              setState(() {
+                                                resendText = 'Resend Code';
+                                              });
+                                            }
+
+                                          } catch(e) {
+                                            final error = e as AuthException;
+                                            print('Error resending code: $e');
+                                            Get.snackbar('Cooldown in Progress!', 'Resend code cooldown in progress please wait for ${formatTimeFromMessage(error.message)} ${error.message.contains('seconds') ? 'seconds' : 'minutes'}', backgroundColor: Colors.red, colorText: Colors.white, duration: const Duration(seconds: 2));
+
+                                            setState(() {
+                                              resendText = 'Resend Code';
+                                            });
                                           }
+
                                         },
                                       ),
                                       if(codeSeconds > 0)
@@ -234,33 +285,41 @@ class _OTPAccountState extends State<OTPAccount> {
                       child: ElevatedButton(
                         onPressed: codeController.text.trim().length < 6 ? null : () async {
 
-                          if(processingOtp) {
-                            return;
-                          }
+                          try {
+                            print('Verrifiyng otp code: ${codeController.text.trim()}');
 
-                          FocusScope.of(context).unfocus();
+                            if(processingOtp) {
+                              return;
+                            }
 
-                          setState(() {
-                            processingOtp = true;
-                          });
+                            FocusScope.of(context).unfocus();
 
-                          final verifyOTP = await supabase.auth.verifyOTP(
-                              token: codeController.text.trim(),
-                              type: OtpType.email,
-                              email: widget.email
-                          );
+                            setState(() {
+                              processingOtp = true;
+                            });
 
-                          setState(() {
-                            processingOtp = false;
-                          });
-
-                          if(verifyOTP.session != null) {
-                            Get.offAll(() => (supabase.auth.currentUser?.userMetadata?['name'] != null ? const Hub() : const AccountName()),
-                              transition: Transition.rightToLeft,
-                              duration: const Duration(milliseconds: 400)
+                            final verifyOTP = await supabase.auth.verifyOTP(
+                                token: codeController.text.trim(),
+                                type: OtpType.email,
+                                email: widget.email
                             );
-                          } else {
-                            Get.snackbar('Error', 'Invalid OTP', backgroundColor: Colors.red, colorText: Colors.white, duration: const Duration(seconds: 2));
+
+
+
+                            if(verifyOTP.session != null) {
+                              Get.offAll(() => (supabase.auth.currentUser?.userMetadata?['name'] != null ? const Hub() : const AccountName()),
+                                  transition: Transition.rightToLeft,
+                                  duration: const Duration(milliseconds: 400)
+                              );
+                            } else {
+                              Get.snackbar('Error', 'Invalid OTP', backgroundColor: Colors.red, colorText: Colors.white, duration: const Duration(seconds: 2));
+                            }
+                          } catch(e) {
+                            print('Error found: $e');
+                            setState(() {
+                              processingOtp = false;
+                            });
+                            Get.snackbar('Oops!', 'That OTP is incorrect or expired. Please double-check and try again.', backgroundColor: Colors.red, colorText: Colors.white, duration: const Duration(seconds: 2));
                           }
                         },
                         style: ElevatedButton.styleFrom(
