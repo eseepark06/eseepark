@@ -138,7 +138,7 @@ class ParkingSlotTimer extends StatefulWidget {
 
 class _ParkingSlotTimerState extends State<ParkingSlotTimer> {
   late Timer _timer;
-  String elapsedTime = "N/A";
+  String elapsedTime = "--";
 
   @override
   void initState() {
@@ -168,7 +168,7 @@ class _ParkingSlotTimerState extends State<ParkingSlotTimer> {
       }
     } else {
       setState(() {
-        elapsedTime = "N/A";
+        elapsedTime = "--";
       });
     }
   }
@@ -176,12 +176,18 @@ class _ParkingSlotTimerState extends State<ParkingSlotTimer> {
 
   String _formatDuration(Duration duration) {
     int hours = duration.inHours;
-    int minutes = (duration.inMinutes % 60);
-    int seconds = (duration.inSeconds % 60);
-    return '${hours.toString().padLeft(2, '0')}:'
-        '${minutes.toString().padLeft(2, '0')}:'
-        '${seconds.toString().padLeft(2, '0')}';
+    int minutes = duration.inMinutes % 60;
+    int seconds = duration.inSeconds % 60;
+
+    if (hours > 0) {
+      return '${hours}h ${minutes}m';
+    } else if (minutes > 0) {
+      return '${minutes}m ${seconds.toString().padLeft(2, '0')}s';
+    } else {
+      return '${seconds.toString().padLeft(2, '0')}s';
+    }
   }
+
 
   @override
   void dispose() {
@@ -194,7 +200,7 @@ class _ParkingSlotTimerState extends State<ParkingSlotTimer> {
     return Text(
       widget.slotStatus.trim().toLowerCase() == 'available' ? "Available" : "Occupied for: $elapsedTime",
       style: TextStyle(
-        fontSize: screenSize * 0.01,
+        fontSize: screenSize * 0.0095,
         color: widget.slotStatus.trim().toLowerCase() == 'available' ? Colors.grey : Colors.white,
       ),
     );

@@ -75,6 +75,7 @@ class EstablishmentController {
       .stream(primaryKey: ['establishment_id'])
       .eq('availability_status', 'operating')
       .order('created_at', ascending: true)
+      .limit(10)
       .asyncMap((data) async {
     List<Establishment> establishments = [];
 
@@ -92,9 +93,33 @@ class EstablishmentController {
         parkingRate = ParkingRate.fromMap(ratesResponse.first);
       }
 
+      int? parkingSlotsCount;
+
+      final sectionsResponse = await supabase
+          .from('parking_sections')
+          .select('*')
+          .eq('establishment_id', est['establishment_id'])
+          .order('created_at', ascending: true);
+
+      if (sectionsResponse.isNotEmpty) {
+        for (var sectionMap in sectionsResponse) {
+          // Query the count of parking slots for each section
+          final countResponse = await supabase
+              .from('parking_slots')
+              .select()
+              .eq('section_id', sectionMap['section_id'])
+              .eq('status', 'available')
+              .count(); // Use single() to get a single row response
+
+          if (countResponse.count > 0) {
+            parkingSlotsCount = countResponse.count; // Get the count from the response
+          }
+        }
+      }
       establishments.add(Establishment.fromMap({
         ...est,
         'parking_rate': parkingRate?.toMap() ?? {},
+        'parking_slots_count': parkingSlotsCount,
       }));
     }
 

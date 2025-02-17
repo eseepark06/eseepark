@@ -32,6 +32,8 @@ class Establishment {
 
   final List<ParkingSection>? parkingSections;
 
+  final int? parkingSlotsCount;
+
   Establishment({
     required this.establishmentId,
     required this.name,
@@ -43,7 +45,8 @@ class Establishment {
     this.image,
     required this.coordinates,
     this.parkingRate,
-    this.parkingSections
+    this.parkingSections,
+    this.parkingSlotsCount
   });
 
   factory Establishment.fromMap(Map<String, dynamic> map) {
@@ -68,6 +71,8 @@ class Establishment {
       parkingSections: map['parking_sections'] is List
           ? (map['parking_sections'] as List).map((x) => ParkingSection.fromMap(x as Map<String, dynamic>)).toList()
           : null,
+
+      parkingSlotsCount: map['parking_slots_count'] as int? ?? 0
     );
   }
 
@@ -85,6 +90,8 @@ class Establishment {
       EstablishmentFields.image: image,
       EstablishmentFields.coordinates: coordinates,
       'parking_rate': parkingRate?.toMap(), // Include parking rate
+      'parking_sections': parkingSections?.map((x) => x.toMap()).toList(), // Include parking sections
+      'parking_slots_count': parkingSlotsCount
     };
   }
 

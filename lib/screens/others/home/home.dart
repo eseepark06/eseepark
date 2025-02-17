@@ -3,6 +3,7 @@ import 'package:eseepark/screens/others/home/partials/parking_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../../controllers/establishments/establishments_controller.dart';
 import '../../../globals.dart';
@@ -28,55 +29,6 @@ class _HomeState extends State<Home> {
 
   List<FilterButton> filterButtons = [
     FilterButton(index: 0, name: 'Popular')
-  ];
-
-  List<Establishment> establishments = [
-    Establishment(
-        id: '0',
-        name: 'SM City Marikina',
-        type: '1',
-        acceptsValet: true,
-        availableSlots: 138,
-        distance: 2.0,
-        image: 'assets/images/home/establishments/smmarikina.jpg',
-        price: 50.00,
-        ratings: 4.5
-    ),
-    Establishment(
-        id: '1',
-        name: 'TaskUs Anonas Parking',
-        type: '2',
-        acceptsValet: false,
-        availableSlots: 50,
-        distance: 8.2,
-        image: 'assets/images/home/establishments/taskusanonas.jpg',
-        price: 45.00,
-        succeedingCharge: 20,
-        ratings: 4.2
-    ),
-    Establishment(
-        id: '2',
-        name: 'Bonifacio Global City Open Space',
-        type: '2',
-        acceptsValet: false,
-        availableSlots: 72,
-        distance: 15.4,
-        image: 'assets/images/home/establishments/bgc.jpg',
-        price: 65.00,
-        succeedingCharge: 40,
-        ratings: 4.2
-    ),
-    Establishment(
-        id: '3',
-        name: 'Ayala Malls Feliz',
-        type: '1',
-        acceptsValet: true,
-        availableSlots: 98,
-        distance: 10.1,
-        image: 'assets/images/home/establishments/ayalamallsfeliz.jpg',
-        price: 40.00,
-        ratings: 4.2
-    )
   ];
 
   @override
@@ -394,225 +346,260 @@ class _HomeState extends State<Home> {
                     ),
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-                      child: StreamBuilder(
-                          stream: _controller.establishmentStream,
-                          builder: (context, snapshot) {
+                      alignment: Alignment.topCenter,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          StreamBuilder(
+                              stream: _controller.establishmentStream,
+                              builder: (context, snapshot) {
+                                return AnimatedSwitcher(
+                                  switchInCurve: Curves.easeIn,
+                                  switchOutCurve: Curves.easeOut,
+                                  duration: const Duration(milliseconds: 100),
+                                  transitionBuilder: (Widget child, Animation<double> animation) =>
+                                      FadeTransition(opacity: animation, child: child),
+                                  child: Align(
+                                    alignment: Alignment.topCenter,
+                                    key: ValueKey('establishments-list-${snapshot.data?.length ?? 0}'), // Key based on data length
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      children: snapshot.data != null
+                                          ? (snapshot.data ?? [])
+                                          .where((e) => selectedMenu == 0 || e.establishmentType == parkingMenus[selectedMenu].name)
+                                          .map((establishment) {
+                                        final parkingRate = establishment.parkingRate;
+                                        final parkingSlotsCount = establishment.parkingSlotsCount;
 
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return Center(child: CircularProgressIndicator());
-                            }
-
-                            if (snapshot.hasError) {
-                              print('Error found: ${snapshot.error}');
-                              return Center(child: Text("Error loading data: ${snapshot.error}"));
-                            }
-
-                            final establishments = snapshot.data ?? [];
-
-                            if (establishments.isEmpty) {
-                              return Center(child: Text("No establishments available"));
-                            }
-
-                            return ListView.builder(
-                              itemCount: selectedMenu == 0 ? establishments.length : establishments.where((e) => e.establishmentType == parkingMenus[selectedMenu].name).length,
-                              physics: const NeverScrollableScrollPhysics(),
-                              shrinkWrap: true,
-                              padding: EdgeInsets.zero,
-                              itemBuilder: (context, index) {
-                                final establishment = selectedMenu == 0 ? establishments[index] : establishments.where((e) => e.establishmentType == parkingMenus[selectedMenu].name).toList()[index];
-                                final parkingRate = establishment.parkingRate;
-
-                                return InkWell(
-                                  onTap: () {
-                                    showModalBottomSheet(
-                                        context: context,
-                                        isScrollControlled: true,
-                                        builder: (context) {
-                                          return ParkingSheet(establishmentId: establishment.establishmentId);
-                                        }
-                                    );
-                                  },
-                                  child: Container(
-                                    width: screenWidth,
-                                    height: screenHeight * 0.33,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withValues(alpha: 0.01),
-                                          spreadRadius: 2,
-                                          blurRadius: 3
-                                        )
-                                      ]
-                                    ),
-                                    margin: EdgeInsets.only(bottom: screenHeight * 0.02),
-                                    child: Stack(
-                                      children: [
-                                        Column(
-                                          children: [
-                                            Container(
-                                              height: screenHeight * 0.25,
-                                              decoration: BoxDecoration(
-                                                  image: establishment.image!.isNotEmpty ? DecorationImage(
-                                                      image: NetworkImage(establishment.image!),
-                                                      fit: BoxFit.cover
-                                                  ) : null,
-                                                  borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20))
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Positioned(
-                                          top: screenHeight * 0.01,
-                                          left: screenWidth * 0.03,
+                                        return InkWell(
+                                          onTap: () {
+                                            showModalBottomSheet(
+                                                context: context,
+                                                isScrollControlled: true,
+                                                builder: (context) {
+                                                  return ParkingSheet(establishmentId: establishment.establishmentId);
+                                                });
+                                          },
                                           child: Container(
-                                            padding: EdgeInsets.symmetric(
-                                                horizontal: screenWidth * 0.04,
-                                                vertical: screenHeight * 0.003
-                                            ),
-                                            decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(30),
-                                                color: Theme.of(context).colorScheme.primary
-                                            ),
-                                            child: Text(parkingMenus.where((e) => e.name == establishment.establishmentType).toList().first.name, style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: screenSize * 0.0095,
-                                                fontWeight: FontWeight.w700
-                                            )),
-                                          ),
-                                        ),
-
-                                        Positioned(
-                                          top: 0,
-                                          right: 0,
-                                          child: Container(
-                                            padding: EdgeInsets.symmetric(
-                                                horizontal: screenWidth * 0.04,
-                                                vertical: screenHeight * 0.01
-                                            ),
-                                            decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.only(
-                                                    topRight: Radius.circular(20),
-                                                    bottomLeft: Radius.circular(20)
-                                                ),
-                                                color: Theme.of(context).colorScheme.primary
-                                            ),
-                                            child: Column(
-                                              children: [
-                                                Text(12.toString(), style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: screenSize * 0.012,
-                                                    height: 1,
-                                                    fontWeight: FontWeight.w700
-                                                )),
-                                                Text('slots',
-                                                  style: TextStyle(
-                                                      color: Colors.white,
-                                                      height: 1,
-                                                      fontSize: screenSize * 0.0095,
-                                                      fontWeight: FontWeight.w400
-                                                  ),
-                                                )
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                        Positioned(
-                                          bottom: 0,
-                                          left: 0,
-                                          right: 0,
-                                          child: Container(
-                                            height: screenHeight * 0.12,
+                                            width: screenWidth,
+                                            height: screenHeight * 0.33,
                                             decoration: BoxDecoration(
                                                 borderRadius: BorderRadius.circular(20),
-                                                color: Colors.white
-                                            ),
-                                            padding: EdgeInsets.symmetric(
-                                                horizontal: screenWidth * 0.04,
-                                                vertical: screenHeight * 0.014
-                                            ),
-                                            child: Column(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                      color: Colors.black.withOpacity(0.01),
+                                                      spreadRadius: 2,
+                                                      blurRadius: 3)
+                                                ]),
+                                            margin: EdgeInsets.only(bottom: screenHeight * 0.02),
+                                            child: Stack(
                                               children: [
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                Column(
                                                   children: [
-                                                    Expanded(
-                                                      child: Container(
-                                                        child: Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          children: [
-                                                            Text(establishment.name,
-                                                                maxLines: 1,
-                                                                overflow: TextOverflow.ellipsis,
-                                                                style: TextStyle(
-                                                                    fontSize: screenSize * 0.014,
-                                                                    fontWeight: FontWeight.bold
-                                                                )),
-                                                            Text('${1} kilometers away',
-                                                                style: TextStyle(
-                                                                    fontSize: screenSize * 0.0095,
-                                                                    fontWeight: FontWeight.w400,
-                                                                    color: const Color(0xFF808080)
-                                                                )
-                                                            )
-                                                          ],
-                                                        ),
-                                                      ),
+                                                    Container(
+                                                      height: screenHeight * 0.25,
+                                                      decoration: BoxDecoration(
+                                                          image: establishment.image!.isNotEmpty
+                                                              ? DecorationImage(
+                                                              image: NetworkImage(establishment.image!),
+                                                              fit: BoxFit.cover)
+                                                              : null,
+                                                          borderRadius: BorderRadius.only(
+                                                              topLeft: Radius.circular(20),
+                                                              topRight: Radius.circular(20))),
                                                     ),
-                                                    SizedBox(width: screenWidth * 0.02),
-                                                    Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                      mainAxisAlignment: MainAxisAlignment.center,
-                                                      children: [
-                                                        Icon(Icons.star, size: screenSize * 0.014, color: Theme.of(context).colorScheme.primary),
-                                                        SizedBox(width: screenWidth * 0.01),
-                                                        Text(4.5.toString(),
-                                                            style: TextStyle(
-                                                                fontSize: screenSize * 0.011,
-                                                                fontWeight: FontWeight.w400
-                                                            )
-                                                        )
-                                                      ],
-                                                    )
                                                   ],
                                                 ),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  children: [
-                                                    RichText(
-                                                        text: TextSpan(
-                                                            children: [
-                                                              TextSpan(text: '₱${double.parse((parkingRate?.flatRate ?? parkingRate?.baseRate).toString()).toStringAsFixed(2)}', style: TextStyle(
-                                                                  fontSize: screenSize * 0.011,
-                                                                  fontFamily: 'HelveticaNeue',
-                                                                  color: const Color(0xFF808080)
-                                                              )),
-                                                              TextSpan(
-                                                                  text: parkingRate?.flatRate == null ? ' • First ${parkingRate?.baseHours} hours' : ' • Fixed Parking Fee', style: TextStyle(
-                                                                  fontSize: screenSize * 0.009,
-                                                                  fontFamily: 'Poppins',
-                                                                  color: const Color(0xFF808080)
-                                                              )
-
-                                                              )
-                                                            ]
-                                                        )
+                                                Positioned(
+                                                  top: screenHeight * 0.01,
+                                                  left: screenWidth * 0.03,
+                                                  child: Container(
+                                                    padding: EdgeInsets.symmetric(
+                                                        horizontal: screenWidth * 0.04,
+                                                        vertical: screenHeight * 0.003),
+                                                    decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.circular(30),
+                                                        color: Theme.of(context).colorScheme.primary),
+                                                    child: Text(
+                                                      parkingMenus
+                                                          .where((e) => e.name == establishment.establishmentType)
+                                                          .toList()
+                                                          .first
+                                                          .name,
+                                                      style: TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: screenSize * 0.0095,
+                                                          fontWeight: FontWeight.w700),
                                                     ),
-                                                  ],
-                                                )
+                                                  ),
+                                                ),
+                                                Positioned(
+                                                  top: 0,
+                                                  right: 0,
+                                                  child: Container(
+                                                    padding: EdgeInsets.symmetric(
+                                                        horizontal: screenWidth * 0.04,
+                                                        vertical: screenHeight * 0.01),
+                                                    decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.only(
+                                                            topRight: Radius.circular(20),
+                                                            bottomLeft: Radius.circular(20)),
+                                                        color: (parkingSlotsCount ?? 0) > 0
+                                                            ? Theme.of(context).colorScheme.primary
+                                                            : const Color(0xFFD0D0D0)),
+                                                    child: Column(
+                                                      children: [
+                                                        Text(
+                                                          parkingSlotsCount.toString(),
+                                                          style: TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: screenSize * 0.012,
+                                                              height: 1,
+                                                              fontWeight: FontWeight.w700),
+                                                        ),
+                                                        Text(
+                                                          'slots',
+                                                          style: TextStyle(
+                                                              color: Colors.white,
+                                                              height: 1,
+                                                              fontSize: screenSize * 0.0095,
+                                                              fontWeight: FontWeight.w400),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                Positioned(
+                                                  bottom: 0,
+                                                  left: 0,
+                                                  right: 0,
+                                                  child: Container(
+                                                    height: screenHeight * 0.12,
+                                                    decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.circular(20),
+                                                        color: Colors.white),
+                                                    padding: EdgeInsets.symmetric(
+                                                        horizontal: screenWidth * 0.04,
+                                                        vertical: screenHeight * 0.014),
+                                                    child: Column(
+                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                      children: [
+                                                        Row(
+                                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          children: [
+                                                            Expanded(
+                                                              child: Column(
+                                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                                children: [
+                                                                  Text(
+                                                                    establishment.name,
+                                                                    maxLines: 1,
+                                                                    overflow: TextOverflow.ellipsis,
+                                                                    style: TextStyle(
+                                                                        fontSize: screenSize * 0.014,
+                                                                        fontWeight: FontWeight.bold),
+                                                                  ),
+                                                                  Text(
+                                                                    '${1} kilometers away',
+                                                                    style: TextStyle(
+                                                                        fontSize: screenSize * 0.0095,
+                                                                        fontWeight: FontWeight.w400,
+                                                                        color: const Color(0xFF808080)),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                            SizedBox(width: screenWidth * 0.02),
+                                                            Row(
+                                                              children: [
+                                                                Icon(
+                                                                  Icons.star,
+                                                                  size: screenSize * 0.014,
+                                                                  color: Theme.of(context).colorScheme.primary,
+                                                                ),
+                                                                SizedBox(width: screenWidth * 0.01),
+                                                                Text(
+                                                                  4.5.toString(),
+                                                                  style: TextStyle(
+                                                                      fontSize: screenSize * 0.011,
+                                                                      fontWeight: FontWeight.w400),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        Row(
+                                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                          children: [
+                                                            RichText(
+                                                              text: TextSpan(
+                                                                children: [
+                                                                  TextSpan(
+                                                                    text:
+                                                                    '₱${double.parse((parkingRate?.flatRate ?? parkingRate?.baseRate).toString()).toStringAsFixed(2)}',
+                                                                    style: TextStyle(
+                                                                        fontSize: screenSize * 0.011,
+                                                                        fontFamily: 'HelveticaNeue',
+                                                                        color: const Color(0xFF808080)),
+                                                                  ),
+                                                                  TextSpan(
+                                                                    text: parkingRate?.flatRate == null
+                                                                        ? ' • First ${parkingRate?.baseHours} hours'
+                                                                        : ' • Fixed Parking Fee',
+                                                                    style: TextStyle(
+                                                                        fontSize: screenSize * 0.009,
+                                                                        fontFamily: 'Poppins',
+                                                                        color: const Color(0xFF808080)),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
                                               ],
                                             ),
                                           ),
-                                        )
-                                      ],
-                                    )
+                                        );
+                                      }).toList()
+                                          : [1, 2, 3].map((e) {
+                                        return Shimmer.fromColors(
+                                          baseColor: const Color(0xFFEAEAEA),
+                                          highlightColor: const Color(0xFFEAEAEA).withOpacity(0.4),
+                                          enabled: true,
+                                          direction: ShimmerDirection.ltr,
+                                          child: Container(
+                                            width: screenWidth,
+                                            height: screenHeight * 0.33,
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(20),
+                                              color: Colors.grey[300],
+                                            ),
+                                            margin: EdgeInsets.only(bottom: screenHeight * 0.02),
+                                            child: Center(
+                                              child: Container(
+                                                height: 20,
+                                                width: 100,
+                                                color: Colors.grey[200],
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ),
                                   ),
                                 );
-                              }
-                          );
-                        }
+                            }
+                          ),
+                        ],
                       )
                     )
                   ],

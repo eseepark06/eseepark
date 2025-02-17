@@ -174,17 +174,19 @@ class _ParkingSheetState extends State<ParkingSheet> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(establishment.name,
-                            // maxLines: 2,
-                            // overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 20,
+                              fontSize: screenSize * 0.018,
 
                             ),),
-                            Text('${establishment.parkingSections
-                                ?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.where((slot) => slot.slotStatus == 'available').length ?? 0)) ?? 0} Available Slot(s)',
+                            Text('Slots Available: ${establishment.parkingSections
+                                ?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.where((slot) => slot.slotStatus == 'available').length ?? 0)) ?? 0}',
                             style: TextStyle(
-                              color: Color(0xff808080)
+                              color: (establishment.parkingSections
+                                  ?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.where((slot) => slot.slotStatus == 'available').length ?? 0)) ?? 0) == 0 ? Colors.red : Color(0xff808080),
+                              fontSize: screenSize * 0.01
                             ),)
                           ],
                         ),
@@ -380,7 +382,7 @@ class _ParkingSheetState extends State<ParkingSheet> {
                   child: GridView.builder(
                     itemCount: establishment.parkingSections
                         ?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.where((slot) {
-                          bool isSorted = selectedValue == 'All' ? true : slot.slotStatus == (selectedValue == 'Free' ? 'available' : selectedValue);
+                          bool isSorted = selectedValue == 'All' ? true : slot.slotStatus == (selectedValue == 'Free' ? 'available' : selectedValue.toLowerCase());
 
                           return isSorted;
                     }).length ?? 0)) ?? 0,
@@ -394,11 +396,17 @@ class _ParkingSheetState extends State<ParkingSheet> {
                       // ✅ Explicitly define allSlots as a List of Maps
                       final List<Map<String, dynamic>> allSlots = establishment.parkingSections
                           ?.expand((section) => section.parkingSlots
-                          ?.map((slot) => {'section': section, 'slot': slot})
-                          .toList() ??
-                          <Map<String, dynamic>>[]) // Explicit type
+                          ?.where((slot) {
+                        bool isSorted = selectedValue == 'All'
+                            ? true
+                            : slot.slotStatus == (selectedValue == 'Free' ? 'available' : selectedValue.toLowerCase());
+
+                        return isSorted;
+                      })
+                          .map((slot) => {'section': section, 'slot': slot})
+                          .toList() ?? <Map<String, dynamic>>[])
                           .toList()
-                          .cast<Map<String, dynamic>>() ?? []; // Use `.cast<>()` to enforce the correct type
+                          .cast<Map<String, dynamic>>() ?? [];
 
                       if (index >= allSlots.length) return SizedBox(); // Prevents index errors
 
