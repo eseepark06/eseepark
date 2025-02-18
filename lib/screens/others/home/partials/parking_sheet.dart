@@ -60,7 +60,7 @@ class ParkingSheet extends StatefulWidget {
 
 class _ParkingSheetState extends State<ParkingSheet> {
   final _controller = EstablishmentController();
-  int floorIndex = 0;
+  int floorIndex = -1;
   late Timer _timer;
 
   String selectedSlot = '';
@@ -123,6 +123,7 @@ class _ParkingSheetState extends State<ParkingSheet> {
     'All',
     'Free',
     'Occupied',
+    'Reserved'
   ];
 
   String selectedValue = 'All';
@@ -358,7 +359,6 @@ class _ParkingSheetState extends State<ParkingSheet> {
             ),
           ),
         );
-
       }
 
         return Container(
@@ -418,7 +418,7 @@ class _ParkingSheetState extends State<ParkingSheet> {
                 width: screenWidth,
                 child: ListView.builder(
                   itemCount: (establishment.parkingSections?.fold(0, (val, section) =>
-                  (section.floorLevel ?? 0) > (val ?? 0) ? val = (section.floorLevel ?? 0) : val) ?? 0) + 1, // Add 1 for "All" button
+                  (section.floorLevel ?? 0) > (val ?? 0) ? val = (section.floorLevel ?? 0) : val) ?? 0) + 1,
                   shrinkWrap: true,
                   scrollDirection: Axis.horizontal,
                   itemBuilder: (context, index) {
@@ -428,7 +428,7 @@ class _ParkingSheetState extends State<ParkingSheet> {
                     return InkWell(
                       onTap: () {
                         setState(() {
-                          floorIndex = index == 0 ? -1 : index - 1; // -1 means "All" selected
+                          floorIndex = index == 0 ? -1 : index - 1;
                         });
 
                         print(floorIndex);
@@ -548,7 +548,7 @@ class _ParkingSheetState extends State<ParkingSheet> {
                             iconDisabledColor: Colors.grey,
                           ),
                           dropdownStyleData: DropdownStyleData(
-                            maxHeight: 200,
+                            maxHeight: 300,
                             width: 200,
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(14),
@@ -597,7 +597,7 @@ class _ParkingSheetState extends State<ParkingSheet> {
                   padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
                   child: GridView.builder(
                     itemCount: establishment.parkingSections
-                        ?.where((section) => floorIndex == -1 || section.floorLevel == floorIndex + 1) // ✅ Show all sections if "All" is selected
+                        ?.where((section) => floorIndex == -1 || section.floorLevel == floorIndex + 1)
                         .expand((section) => section.parkingSlots?.where((slot) {
                       bool isSorted = selectedValue == 'All'
                           ? true
@@ -612,9 +612,8 @@ class _ParkingSheetState extends State<ParkingSheet> {
                       childAspectRatio: 2.4,
                     ),
                     itemBuilder: (context, index) {
-                      // ✅ Fetching slots across all floors if "All" is selected
                       final List<Map<String, dynamic>> allSlots = (establishment.parkingSections
-                          ?.where((section) => floorIndex == -1 || section.floorLevel == floorIndex + 1) // ✅ Show all sections if "All" is selected
+                          ?.where((section) => floorIndex == -1 || section.floorLevel == floorIndex + 1)
                           .expand((section) => section.parkingSlots
                           ?.where((slot) {
                         bool isSorted = selectedValue == 'All'
@@ -647,15 +646,16 @@ class _ParkingSheetState extends State<ParkingSheet> {
                           decoration: BoxDecoration(
                             border: currentSlot.slotStatus == 'available'
                                 ? Border.all(
-                              width: 2,
-                              color: currentSlot.id == selectedSlot ? Theme.of(context).colorScheme.primary : const Color(0xFFD1D1D1),
-                            )
-                                : null,
-                            color: currentSlot.slotStatus == 'available'
-                                ? currentSlot.id == selectedSlot
+                                  width: 2,
+                                  color: currentSlot.id == selectedSlot ? Theme.of(context).colorScheme.primary : const Color(0xFFD1D1D1),
+                                ) : currentSlot.slotStatus == 'reserved' ? Border.all(
+                                  width: 2,
+                                  color: Colors.yellow
+                                ) : null,
+                            color: currentSlot.slotStatus == 'available' ? currentSlot.id == selectedSlot
                                 ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
                                 : Colors.transparent
-                                : Theme.of(context).colorScheme.primary,
+                                : currentSlot.slotStatus == 'reserved' ? Colors.yellow.withValues(alpha: 0.3) : Theme.of(context).colorScheme.primary,
                             borderRadius: BorderRadius.circular(11),
                           ),
                           alignment: Alignment.center,
@@ -663,18 +663,26 @@ class _ParkingSheetState extends State<ParkingSheet> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              // ✅ Display Section-Slot Number correctly
                               Text(
-                                '$sectionName-$slotNumber', // 🛠️ Use actual section and slot number
+                                '$sectionName-$slotNumber',
                                 style: TextStyle(
                                   fontSize: screenSize * 0.015,
                                   fontWeight: FontWeight.bold,
                                   height: 1,
-                                  color: currentSlot.slotStatus == 'available' ? Colors.black : Colors.white,
+                                  color: currentSlot.slotStatus == 'available' || currentSlot.slotStatus == 'reserved' ? Colors.black : Colors.white,
                                 ),
                               ),
-                              if (currentSlot.slotStatus != 'Under Maintenance')
+                              if (currentSlot.slotStatus != 'Under Maintenance' && currentSlot.slotStatus != 'reserved')
                                 ParkingSlotTimer(slotStatus: currentSlot.slotStatus, timeTaken: currentSlot.timeTaken?.toString()),
+                              if (currentSlot.slotStatus == 'reserved')
+                                Text(
+                                  'Reserved',
+                                  style: TextStyle(
+                                    fontSize: screenSize * 0.0095,
+                                    height: 1.3,
+                                    color: Colors.black.withValues(alpha: 0.3)
+                                  ),
+                                ),
                             ],
                           ),
                         ),
@@ -695,7 +703,30 @@ class _ParkingSheetState extends State<ParkingSheet> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: selectedSlot.isNotEmpty ? () {
+                          final checkSlotAvailability = establishment.parkingSections?.firstWhere(
+                              (section) => section.parkingSlots?.any((slot) => slot.id == selectedSlot) ?? false
+                          );
 
+                          if (checkSlotAvailability?.parkingSlots?.where((slot) => slot.slotStatus != 'available').isNotEmpty ?? false) {
+                            Get.snackbar(
+                              'Oops!',
+                              'Sorry, this slot is not available at the moment.',
+                              snackPosition: SnackPosition.BOTTOM,
+                              backgroundColor: Colors.red,
+                              colorText: Colors.white,
+                              borderRadius: 10,
+                              margin: EdgeInsets.all(10),
+                              duration: const Duration(seconds: 3),
+                            );
+
+                            setState(() {
+                              selectedSlot = '';
+                            });
+
+                            return;
+                          } else {
+                            print('Booking this slot');
+                          }
                         } : null,
                         style: ElevatedButton.styleFrom(
                           elevation: 0,
@@ -733,21 +764,27 @@ class _ParkingSheetState extends State<ParkingSheet> {
                       ),
                     ),
                     SizedBox(width: screenWidth * 0.06),
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: selectedSlot.isNotEmpty ? Theme.of(context).colorScheme.primary : const Color(0xFFD1D1D1),
-                          width: 2.3
+                    InkWell(
+                      onTap: () {
+
+                      },
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: selectedSlot.isNotEmpty ? Theme.of(context).colorScheme.primary : const Color(0xFFD1D1D1),
+                            width: 2.3
+                          ),
+                          borderRadius: BorderRadius.circular(8)
                         ),
-                        borderRadius: BorderRadius.circular(8)
+                        padding: EdgeInsets.symmetric(
+                          vertical: screenHeight * 0.015,
+                          horizontal: screenWidth * 0.04
+                        ),
+                        child: Icon(Icons.info,
+                          color: selectedSlot.isNotEmpty ? Theme.of(context).colorScheme.primary : const Color(0xFFD1D1D1),
+                        )
                       ),
-                      padding: EdgeInsets.symmetric(
-                        vertical: screenHeight * 0.015,
-                        horizontal: screenWidth * 0.04
-                      ),
-                      child: Icon(Icons.info,
-                        color: selectedSlot.isNotEmpty ? Theme.of(context).colorScheme.primary : const Color(0xFFD1D1D1),
-                      )
                     )
                   ],
                 )
