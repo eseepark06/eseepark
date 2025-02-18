@@ -63,7 +63,7 @@ class _HubState extends State<Hub> {
                 child: SvgPicture.asset('assets/svgs/hub/$svgAsset-${selectedPage == index ? 'selected' : 'unselected'}.svg',
                   key: ValueKey(selectedPage == index ? 'selected_$index' : 'unselected_$index'),
                   colorFilter: ColorFilter.mode(
-                    selectedPage == index ? Theme.of(context).colorScheme.primary : const Color(0xFF808080), BlendMode.srcIn
+                    selectedPage == index ? Theme.of(context).colorScheme.onPrimary : const Color(0xFF808080), BlendMode.srcIn
                   ),
                   width: selectedPage == index ? screenWidth * 0.06 : screenWidth * 0.05,
                 ),
@@ -77,7 +77,7 @@ class _HubState extends State<Hub> {
               child: Text(title,
                 key: ValueKey(selectedPage == index ? 'text_selected_$index' : 'text_unselected_$index'),
                 style: TextStyle(
-                  color: selectedPage == index ? Theme.of(context).colorScheme.primary : const Color(0xFF808080),
+                  color: selectedPage == index ? Theme.of(context).colorScheme.onPrimary : const Color(0xFF808080),
                   fontWeight: selectedPage == index ? FontWeight.bold : FontWeight.normal,
                   fontSize: screenWidth * 0.03,
 

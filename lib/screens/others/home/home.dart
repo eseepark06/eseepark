@@ -61,7 +61,7 @@ class _HomeState extends State<Home> {
                         Container(
                           height: screenHeight * 0.03,
                           width: screenWidth,
-                          color:  Theme.of(context).colorScheme.primary,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                         Container(
                           height: screenHeight * 0.05,
@@ -125,7 +125,7 @@ class _HomeState extends State<Home> {
                             ),
                             padding: EdgeInsets.all(screenSize * 0.004),
                             child: SvgPicture.asset('assets/svgs/home/qr-code.svg',
-                              colorFilter: ColorFilter.mode(Theme.of(context).colorScheme.primary, BlendMode.srcIn),
+                              colorFilter: ColorFilter.mode(Theme.of(context).colorScheme.onPrimary, BlendMode.srcIn),
                               width: screenSize * 0.025,
                             ),
                           )
@@ -303,7 +303,7 @@ class _HomeState extends State<Home> {
                           ElevatedButton(
                             onPressed: () {},
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).colorScheme.primary,
+                              backgroundColor: Theme.of(context).colorScheme.onPrimary,
                               elevation: 0
                             ),
                             child: SvgPicture.asset('assets/svgs/home/filter.svg',
@@ -323,20 +323,16 @@ class _HomeState extends State<Home> {
                                 });
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: selectedFilter != null ? selectedFilter == filterButton.index ? Theme.of(context).colorScheme.primary : Colors.white : Colors.white,
+                                backgroundColor: selectedFilter != null ? selectedFilter == filterButton.index ? Theme.of(context).colorScheme.onPrimary : Colors.white : Colors.grey.shade400,
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(30),
-                                  side: BorderSide(
-                                    color: Theme.of(context).colorScheme.primary,
-                                    width: 2
-                                  )
                                 )
                               ),
                               child: Text(filterButton.name,
                                 style: TextStyle(
                                   fontSize: screenSize * 0.012,
-                                  color: selectedFilter != null ? selectedFilter == filterButton.index ? Colors.white : Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.primary,
+                                  color: Colors.white,
                                   fontWeight: FontWeight.w600
                                 ),
                               ),
@@ -423,7 +419,7 @@ class _HomeState extends State<Home> {
                                                         vertical: screenHeight * 0.003),
                                                     decoration: BoxDecoration(
                                                         borderRadius: BorderRadius.circular(30),
-                                                        color: Theme.of(context).colorScheme.primary),
+                                                        color: Theme.of(context).colorScheme.onPrimary),
                                                     child: Text(
                                                       parkingMenus
                                                           .where((e) => e.name == establishment.establishmentType)
@@ -449,7 +445,7 @@ class _HomeState extends State<Home> {
                                                             topRight: Radius.circular(20),
                                                             bottomLeft: Radius.circular(20)),
                                                         color: (parkingSlotsCount ?? 0) > 0
-                                                            ? Theme.of(context).colorScheme.primary
+                                                            ? Theme.of(context).colorScheme.onPrimary
                                                             : const Color(0xFFD0D0D0)),
                                                     child: Column(
                                                       children: [
