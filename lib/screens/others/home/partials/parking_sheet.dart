@@ -417,42 +417,53 @@ class _ParkingSheetState extends State<ParkingSheet> {
                 height: screenHeight * 0.05,
                 width: screenWidth,
                 child: ListView.builder(
-                  itemCount: establishment.parkingSections?.fold(0, (val, section) => (section.floorLevel ?? 0) > (val ?? 0) ? val = section.floorLevel : val) ?? 0,
+                  itemCount: (establishment.parkingSections?.fold(0, (val, section) =>
+                  (section.floorLevel ?? 0) > (val ?? 0) ? val = (section.floorLevel ?? 0) : val) ?? 0) + 1, // Add 1 for "All" button
                   shrinkWrap: true,
                   scrollDirection: Axis.horizontal,
                   itemBuilder: (context, index) {
+                    bool isAllSelected = floorIndex == -1;
+                    bool isCurrentFloor = floorIndex == index - 1;
+
                     return InkWell(
                       onTap: () {
                         setState(() {
-                          floorIndex = index;
+                          floorIndex = index == 0 ? -1 : index - 1; // -1 means "All" selected
                         });
+
+                        print(floorIndex);
                       },
                       highlightColor: Colors.transparent,
                       splashColor: Colors.transparent,
                       splashFactory: NoSplash.splashFactory,
                       child: Container(
                         decoration: BoxDecoration(
-                          color: floorIndex == index ? Theme.of(context).colorScheme.primary : Color(0xffd9d9d9),
-                          borderRadius: BorderRadius.circular(30)
+                          color: index == 0
+                              ? (isAllSelected ? Theme.of(context).colorScheme.primary : Color(0xffd9d9d9))
+                              : (isCurrentFloor ? Theme.of(context).colorScheme.primary : Color(0xffd9d9d9)),
+                          borderRadius: BorderRadius.circular(30),
                         ),
                         alignment: Alignment.center,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: screenWidth * 0.05
-                        ),
+                        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
                         margin: EdgeInsets.only(
-                          left: index == 0 ? screenWidth * 0.03 : screenWidth * 0.045
+                            left: index == 0 ? screenWidth * 0.03 : screenWidth * 0.045
                         ),
-                        child: Text('Floor ${index+1}',
+                        child: Text(
+                          index == 0 ? 'All' : 'Floor ${index}', // First button is "All"
                           style: TextStyle(
-                            color: floorIndex == index ? Color(0xffffffff) : Color(0xff545454),
-                            fontWeight: floorIndex == index ? FontWeight.bold : FontWeight.normal
+                            color: index == 0
+                                ? (isAllSelected ? Colors.white : Color(0xff545454))
+                                : (isCurrentFloor ? Colors.white : Color(0xff545454)),
+                            fontWeight: index == 0
+                                ? (isAllSelected ? FontWeight.bold : FontWeight.normal)
+                                : (isCurrentFloor ? FontWeight.bold : FontWeight.normal),
                           ),
                         ),
                       ),
                     );
                   },
                 ),
-              ), //
+              ),
               Container(
                 padding: EdgeInsets.symmetric(
                     horizontal: screenWidth * 0.04,
@@ -586,7 +597,7 @@ class _ParkingSheetState extends State<ParkingSheet> {
                   padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
                   child: GridView.builder(
                     itemCount: establishment.parkingSections
-                        ?.where((section) => section.floorLevel == floorIndex + 1)
+                        ?.where((section) => floorIndex == -1 || section.floorLevel == floorIndex + 1) // ✅ Show all sections if "All" is selected
                         .expand((section) => section.parkingSlots?.where((slot) {
                       bool isSorted = selectedValue == 'All'
                           ? true
@@ -601,9 +612,9 @@ class _ParkingSheetState extends State<ParkingSheet> {
                       childAspectRatio: 2.4,
                     ),
                     itemBuilder: (context, index) {
-                      // ✅ Correctly fetching section names from DB
+                      // ✅ Fetching slots across all floors if "All" is selected
                       final List<Map<String, dynamic>> allSlots = (establishment.parkingSections
-                          ?.where((section) => section.floorLevel == floorIndex + 1) // ✅ Ensure correct floor sections
+                          ?.where((section) => floorIndex == -1 || section.floorLevel == floorIndex + 1) // ✅ Show all sections if "All" is selected
                           .expand((section) => section.parkingSlots
                           ?.where((slot) {
                         bool isSorted = selectedValue == 'All'
@@ -613,16 +624,14 @@ class _ParkingSheetState extends State<ParkingSheet> {
                       })
                           .map((slot) => {'sectionName': section.name, 'slotNumber': slot.slotNumber, 'slot': slot})
                           .toList() ?? <Map<String, dynamic>>[])
-                          .toList() ??
-                          <Map<String, dynamic>>[])
+                          .toList() ?? <Map<String, dynamic>>[])
                           .cast<Map<String, dynamic>>();
-
 
                       if (index >= allSlots.length) return SizedBox();
 
-                      // ✅ Get exact section name and slot number from DB
+                      // ✅ Get section name and slot number
                       final String sectionName = allSlots[index]['sectionName'] as String;
-                      final int slotNumber = allSlots[index]['slotNumber'] as int;  // Ensure slot number is used from DB
+                      final int slotNumber = allSlots[index]['slotNumber'] as int;
                       final ParkingSlot currentSlot = allSlots[index]['slot'] as ParkingSlot;
 
                       return InkWell(
@@ -654,9 +663,9 @@ class _ParkingSheetState extends State<ParkingSheet> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              // ✅ Display exact Section-Number (B-3, B-5, etc.) from DB
+                              // ✅ Display Section-Slot Number correctly
                               Text(
-                                '$sectionName-$slotNumber',  // 🛠️ Use the real section name and slot number
+                                '$sectionName-$slotNumber', // 🛠️ Use actual section and slot number
                                 style: TextStyle(
                                   fontSize: screenSize * 0.015,
                                   fontWeight: FontWeight.bold,
@@ -671,7 +680,7 @@ class _ParkingSheetState extends State<ParkingSheet> {
                         ),
                       );
                     },
-                  )
+                  ),
                 ),
               ),
               Container(
@@ -702,7 +711,13 @@ class _ParkingSheetState extends State<ParkingSheet> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Continue',
+                            Text(selectedSlot.isEmpty
+                                ? 'Choose a Slot'
+                                : 'Select Slot ${establishment.parkingSections?.firstWhere(
+                                    (sec) => sec.parkingSlots?.any((slot) => slot.id == selectedSlot) ?? false
+                            ).name} - ${establishment.parkingSections?.firstWhere(
+                                    (sec) => sec.parkingSlots?.any((slot) => slot.id == selectedSlot) ?? false
+                            ).parkingSlots?.firstWhere((slot) => slot.id == selectedSlot).slotNumber}',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: screenSize * 0.014,
