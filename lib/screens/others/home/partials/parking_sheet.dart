@@ -63,6 +63,8 @@ class _ParkingSheetState extends State<ParkingSheet> {
   int floorIndex = 0;
   late Timer _timer;
 
+  String selectedSlot = '';
+
   List<Section> sectionList = [
     Section(id: 1, section: 'A'),
     Section(id: 2, section: 'B'),
@@ -359,21 +361,6 @@ class _ParkingSheetState extends State<ParkingSheet> {
 
       }
 
-
-      // // Filter based on the selected value
-      // if (selectedValue == 'Free') {
-      //   filteredSlots = (establishment.parkingSections
-      //       ?.where((section) => section.parkingSlots!.where((slot) => slot.slotStatus == 'available').isNotEmpty)
-      //       .toList() ?? []).cast<ParkingSlot>();
-      //
-      //   print('filteredSlots: $filteredSlots');
-      //
-      // } else if (selectedValue == 'Occupied') {
-      //   filteredSlots = (establishment.parkingSections
-      //       ?.where((section) => section.parkingSlots!.where((slot) => slot.slotStatus == 'occupied').isNotEmpty)
-      //       .toList() ?? []).cast<ParkingSlot>();
-      // }
-
         return Container(
           height: screenHeight * 0.83,
           child: Column(
@@ -599,72 +586,92 @@ class _ParkingSheetState extends State<ParkingSheet> {
                   padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
                   child: GridView.builder(
                     itemCount: establishment.parkingSections
-                        ?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.where((slot) {
-                          bool isSorted = selectedValue == 'All' ? true : slot.slotStatus == (selectedValue == 'Free' ? 'available' : selectedValue.toLowerCase());
-
-                          return isSorted;
-                    }).length ?? 0)) ?? 0,
+                        ?.where((section) => section.floorLevel == floorIndex + 1)
+                        .expand((section) => section.parkingSlots?.where((slot) {
+                      bool isSorted = selectedValue == 'All'
+                          ? true
+                          : slot.slotStatus == (selectedValue == 'Free' ? 'available' : selectedValue.toLowerCase());
+                      return isSorted;
+                    }).toList() ?? [])
+                        .length ?? 0,
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2, // Two columns
+                      crossAxisCount: 2,
                       crossAxisSpacing: 30,
                       mainAxisSpacing: 14,
                       childAspectRatio: 2.4,
                     ),
                     itemBuilder: (context, index) {
-                      // ✅ Explicitly define allSlots as a List of Maps
-                      final List<Map<String, dynamic>> allSlots = establishment.parkingSections
-                          ?.expand((section) => section.parkingSlots
+                      // ✅ Correctly fetching section names from DB
+                      final List<Map<String, dynamic>> allSlots = (establishment.parkingSections
+                          ?.where((section) => section.floorLevel == floorIndex + 1) // ✅ Ensure correct floor sections
+                          .expand((section) => section.parkingSlots
                           ?.where((slot) {
                         bool isSorted = selectedValue == 'All'
                             ? true
                             : slot.slotStatus == (selectedValue == 'Free' ? 'available' : selectedValue.toLowerCase());
-
                         return isSorted;
                       })
-                          .map((slot) => {'section': section, 'slot': slot})
+                          .map((slot) => {'sectionName': section.name, 'slotNumber': slot.slotNumber, 'slot': slot})
                           .toList() ?? <Map<String, dynamic>>[])
-                          .toList()
-                          .cast<Map<String, dynamic>>() ?? [];
+                          .toList() ??
+                          <Map<String, dynamic>>[])
+                          .cast<Map<String, dynamic>>();
 
-                      if (index >= allSlots.length) return SizedBox(); // Prevents index errors
 
-                      // ✅ Accessing section and slot correctly
-                      final ParkingSection section = allSlots[index]['section'] as ParkingSection;
+                      if (index >= allSlots.length) return SizedBox();
+
+                      // ✅ Get exact section name and slot number from DB
+                      final String sectionName = allSlots[index]['sectionName'] as String;
+                      final int slotNumber = allSlots[index]['slotNumber'] as int;  // Ensure slot number is used from DB
                       final ParkingSlot currentSlot = allSlots[index]['slot'] as ParkingSlot;
 
-
-                      return Container(
-                        decoration: BoxDecoration(
-                          border: currentSlot.slotStatus == 'available'
-                              ? Border.all(width: .6, color: const Color(0xFFD1D1D1))
-                              : null,
-                          color: currentSlot.slotStatus == 'available'
-                              ? Colors.transparent
-                              : Theme.of(context).colorScheme.primary,
-                          borderRadius: BorderRadius.circular(11),
-                        ),
-                        alignment: Alignment.center,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            // Display Section-Number (A-1, A-2, B-1, etc.)
-                            Text(
-                              '${section.name}-${currentSlot.slotNumber}',
-                              style: TextStyle(
-                                fontSize: screenSize * 0.015,
-                                fontWeight: FontWeight.bold,
-                                height: 1,
-                                color: currentSlot.slotStatus == 'available' ? Colors.black : Colors.white,
+                      return InkWell(
+                        onTap: currentSlot.slotStatus == 'available'
+                            ? () {
+                          setState(() {
+                            selectedSlot = currentSlot.id != selectedSlot ? currentSlot.id : '';
+                          });
+                        }
+                            : null,
+                        borderRadius: BorderRadius.circular(11),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: currentSlot.slotStatus == 'available'
+                                ? Border.all(
+                              width: 2,
+                              color: currentSlot.id == selectedSlot ? Theme.of(context).colorScheme.primary : const Color(0xFFD1D1D1),
+                            )
+                                : null,
+                            color: currentSlot.slotStatus == 'available'
+                                ? currentSlot.id == selectedSlot
+                                ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                                : Colors.transparent
+                                : Theme.of(context).colorScheme.primary,
+                            borderRadius: BorderRadius.circular(11),
+                          ),
+                          alignment: Alignment.center,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              // ✅ Display exact Section-Number (B-3, B-5, etc.) from DB
+                              Text(
+                                '$sectionName-$slotNumber',  // 🛠️ Use the real section name and slot number
+                                style: TextStyle(
+                                  fontSize: screenSize * 0.015,
+                                  fontWeight: FontWeight.bold,
+                                  height: 1,
+                                  color: currentSlot.slotStatus == 'available' ? Colors.black : Colors.white,
+                                ),
                               ),
-                            ),
-                            if (currentSlot.slotStatus != 'Under Maintenance')
-                              ParkingSlotTimer(slotStatus: currentSlot.slotStatus, timeTaken: currentSlot.timeTaken?.toString()),
-                          ],
+                              if (currentSlot.slotStatus != 'Under Maintenance')
+                                ParkingSlotTimer(slotStatus: currentSlot.slotStatus, timeTaken: currentSlot.timeTaken?.toString()),
+                            ],
+                          ),
                         ),
                       );
                     },
-                  ),
+                  )
                 ),
               ),
               Container(
@@ -678,9 +685,9 @@ class _ParkingSheetState extends State<ParkingSheet> {
                   children: [
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: selectedSlot.isNotEmpty ? () {
 
-                        },
+                        } : null,
                         style: ElevatedButton.styleFrom(
                           elevation: 0,
                           backgroundColor: Theme.of(context).colorScheme.primary,
@@ -714,7 +721,7 @@ class _ParkingSheetState extends State<ParkingSheet> {
                     Container(
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: Theme.of(context).colorScheme.primary,
+                          color: selectedSlot.isNotEmpty ? Theme.of(context).colorScheme.primary : const Color(0xFFD1D1D1),
                           width: 2.3
                         ),
                         borderRadius: BorderRadius.circular(8)
@@ -724,7 +731,7 @@ class _ParkingSheetState extends State<ParkingSheet> {
                         horizontal: screenWidth * 0.04
                       ),
                       child: Icon(Icons.info,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: selectedSlot.isNotEmpty ? Theme.of(context).colorScheme.primary : const Color(0xFFD1D1D1),
                       )
                     )
                   ],

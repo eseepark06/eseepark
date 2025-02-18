@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 class ParkingSlotFields {
-  static const String id = 'id';
+  static const String id = 'slot_id';
   static const String sectionId = 'section_id';
   static const String slotNumber = 'slot_number';
   static const String slotStatus = 'status';
