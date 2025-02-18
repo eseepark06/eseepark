@@ -7,6 +7,7 @@ import 'package:eseepark/models/establishment_model.dart';
 import 'package:eseepark/models/parking_slot_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../../../controllers/establishments/establishments_controller.dart';
 import '../../../../globals.dart';
@@ -137,8 +138,225 @@ class _ParkingSheetState extends State<ParkingSheet> {
 
       final establishment = snapshot.data;
 
+
       if (establishment == null) {
-        return Center(child: Text("No establishments available"));
+        return Shimmer.fromColors(
+          baseColor: const Color(0xFFEAEAEA),
+          highlightColor: const Color(0xFFEAEAEA).withOpacity(0.4),
+          enabled: true,
+          direction: ShimmerDirection.ltr,
+          child: Container(
+            height: screenHeight * 0.83,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                          vertical: screenHeight * 0.035,
+                          horizontal: screenWidth * 0.04
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Container(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    height: screenHeight * 0.028,
+                                    width: screenWidth * 0.5,
+                                    margin: EdgeInsets.only(bottom: screenHeight * 0.01),
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        color: Color(0xffeaeaea)
+                                    ),
+                                  ),
+                                  Container(
+                                    height: screenHeight * 0.02,
+                                    width: screenWidth * 0.3,
+                                    margin: EdgeInsets.only(bottom: screenHeight * 0.01),
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        color: Color(0xffeaeaea)
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                                color: Color(0xffeaeaea),
+                                shape: BoxShape.circle
+                            ),
+                            padding: EdgeInsets.all(screenSize * 0.013),
+                            child: Icon(Icons.close),
+                          )
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: screenWidth * 0.04
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            height: screenHeight * 0.061,
+                            width: screenWidth * 0.3,
+                            margin: EdgeInsets.only(right: screenWidth * 0.03),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(30),
+                                color: Color(0xffeaeaea)
+                            ),
+                          ),
+                          Container(
+                            height: screenHeight * 0.061,
+                            width: screenWidth * 0.3,
+                            margin: EdgeInsets.only(right: screenWidth * 0.03),
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(30),
+                                color: Color(0xffeaeaea)
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: screenWidth,
+                      padding: EdgeInsets.symmetric(
+                          horizontal: screenWidth * 0.04,
+                          vertical: screenHeight * 0.025
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: screenHeight * 0.027,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(30),
+                                  color: Color(0xffeaeaea)
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: screenWidth * 0.1),
+                          Container(
+                            height: screenHeight * 0.061,
+                            width: screenWidth * 0.3,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(30),
+                                color: Color(0xffeaeaea)
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: screenWidth,
+                      padding: EdgeInsets.symmetric(
+                          horizontal: screenWidth * 0.04,
+                          vertical: screenHeight * 0.025
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: screenHeight * 0.085,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(14),
+                                  color: Color(0xffeaeaea)
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: screenWidth * 0.09),
+                          Expanded(
+                            child: Container(
+                              height: screenHeight * 0.085,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(14),
+                                  color: Color(0xffeaeaea)
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      width: screenWidth,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: screenWidth * 0.04,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: screenHeight * 0.085,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(14),
+                                  color: Color(0xffeaeaea)
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: screenWidth * 0.09),
+                          Expanded(
+                            child: Container(
+                              height: screenHeight * 0.085,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(14),
+                                  color: Color(0xffeaeaea)
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  width: screenWidth,
+                  padding: EdgeInsets.only(
+                      left: screenWidth * 0.04,
+                      right: screenWidth * 0.04,
+                      bottom: screenHeight * 0.04
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        flex: 4,
+                        child: Container(
+                          height: screenHeight * 0.07,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14),
+                              color: Color(0xffeaeaea)
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: screenWidth * 0.07),
+                      Expanded(
+                        child: Container(
+                          height: screenHeight * 0.07,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14),
+                              color: Color(0xffeaeaea)
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+
       }
 
 
