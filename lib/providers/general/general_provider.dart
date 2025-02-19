@@ -15,7 +15,6 @@ class GeneralProvider with ChangeNotifier {
   bool _isGetStartedShown = false;
   bool _isInitialized = false;
 
-
   bool get isGetStartedShown => _isGetStartedShown;
   bool get isInitialized => _isInitialized;
 

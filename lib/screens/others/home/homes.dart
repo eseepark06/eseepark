@@ -1,180 +1,131 @@
-import 'package:flutter/material.dart';
-
-class Test extends StatefulWidget {
-  const Test({super.key});
-
-  @override
-  State<Test> createState() => _TestState();
-}
-
-class _TestState extends State<Test> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            automaticallyImplyLeading: false,
-            title: Container(
-              width: screenWidth,
-              padding: EdgeInsets.only(
-                top: screenHeight * 0.08,
-                left: screenWidth * 0.04,
-                right: screenWidth * 0.04,
-                bottom: screenHeight * 0.02,
-              ),
-              decoration: const BoxDecoration(color: Colors.white),
-              child: Column(
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      InkWell(onTap: () => Get.back(), splashColor: Colors.transparent, highlightColor: Colors.transparent, child: Icon(Icons.arrow_back, size: screenSize * 0.025)),
-                      SizedBox(width: screenWidth * 0.05),
-                      Expanded(
-                        child: Container(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Container(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            establishment.name,
-                                            style: TextStyle(
-                                                color: Colors.black,
-                                                fontSize: screenSize * 0.018,
-                                                fontWeight: FontWeight.bold
-                                            ),
-                                          ),
-                                          Text(establishment.address,
-                                            style: TextStyle(
-                                              color: const Color(0xFF808080),
-                                              fontSize: screenSize * 0.01,
-                                              height: 1.3,
-                                              letterSpacing: 0.5,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(width: screenWidth * 0.05),
-                                  Container(
-                                    width: screenWidth * 0.16,
-                                    height: screenWidth * 0.16,
-                                    decoration: BoxDecoration(
-                                      image: establishment.image != null ? DecorationImage(
-                                          image: NetworkImage(establishment.image ?? ''),
-                                          fit: BoxFit.cover
-                                      ) : null,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  )
-                                ],
-                              ),
-                              SizedBox(height: screenWidth * 0.04),
-                              Row(
-                                children: [
-                                  Container(
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context).colorScheme.primary,
-                                            borderRadius: BorderRadius.circular(5),
-                                          ),
-                                          padding: EdgeInsets.all(screenWidth * 0.005),
-                                          child: Icon(
-                                            Icons.local_parking,
-                                            size: screenWidth * 0.04,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        SizedBox(width: screenWidth * 0.02),
-                                        Text("${widget.availableSlots} ${widget.availableSlots > 1 ? 'Slots' : 'Slot'} Available",
-                                          style: TextStyle(
-                                            color: Colors.black54,
-                                            fontSize: screenSize * 0.01,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  SizedBox(width: screenWidth * 0.05),
-                                  Container(
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context).colorScheme.primary,
-                                            borderRadius: BorderRadius.circular(5),
-                                          ),
-                                          padding: EdgeInsets.all(screenWidth * 0.005),
-                                          child: Icon(
-                                            Icons.location_pin,
-                                            size: screenWidth * 0.04,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        SizedBox(width: screenWidth * 0.02),
-                                        Text("${widget.availableSlots} kilometers away",
-                                          style: TextStyle(
-                                            color: Colors.black54,
-                                            fontSize: screenSize * 0.01,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                  SizedBox(height: screenHeight * 0.02),
-                  Container(
-                    width: screenWidth,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Theme.of(context).colorScheme.onPrimary, width: .3),
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: EdgeInsets.symmetric(
-                        vertical: screenHeight * 0.013,
-                        horizontal: screenWidth * 0.05
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Icon(Icons.directions, color: Colors.white, size: screenWidth * 0.05),
-                        SizedBox(width: screenWidth * 0.02),
-                        Text('Get Directions',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: screenSize * 0.011,
-                              fontWeight: FontWeight.w600
-                          ),
-                        )
-                      ],
-                    ),
-                  )
-                ],
-              ),
-            ),
-          ),
-        ],
-      )
-    );
-  }
-}
+// import 'package:eseepark/models/establishment_model.dart';
+// import 'package:eseepark/models/parking_rate_model.dart';
+// import 'package:eseepark/models/parking_section_model.dart';
+// import 'package:geolocator/geolocator.dart';
+// import '../../main.dart';
+// import '../../models/parking_slot_model.dart';
+//
+// class EstablishmentController {
+//   // Stream for all establishments
+//   final Stream<List<Establishment>> establishmentStream;
+//
+//   // Function to get a specific establishment
+//   Stream<Establishment?> getEstablishmentById(String establishmentId) {
+//     return supabase
+//         .from('establishments')
+//         .stream(primaryKey: ['establishment_id'])
+//         .eq('establishment_id', establishmentId)
+//         .limit(1)
+//         .asyncMap((data) async {
+//       if (data.isEmpty) return null;
+//
+//       var est = data.first;
+//
+//       final ratesResponse = await supabase
+//           .from('parking_rates')
+//           .select('*')
+//           .eq('establishment_id', est['establishment_id'])
+//           .order('created_at', ascending: true);
+//
+//       ParkingRate? parkingRate;
+//       if (ratesResponse.isNotEmpty) {
+//         parkingRate = ParkingRate.fromMap(ratesResponse.first);
+//       }
+//
+//       List<ParkingSection> parkingSections = [];
+//       final sectionsResponse = await supabase
+//           .from('parking_sections')
+//           .select('*')
+//           .eq('establishment_id', est['establishment_id'])
+//           .order('created_at', ascending: true);
+//
+//
+//
+//       for (var sectionMap in sectionsResponse) {
+//         ParkingSection section = ParkingSection.fromMap(sectionMap);
+//
+//         final slotsResponse = await supabase
+//             .from('parking_slots')
+//             .select('*')
+//             .eq('section_id', section.id)
+//             .order('created_at', ascending: true);
+//
+//         if(slotsResponse.isNotEmpty) {
+//           final slots = List<ParkingSlot>.from(slotsResponse.map((x) => ParkingSlot.fromMap(x)));
+//
+//           section = section.copyWith(parkingSlots: slots);
+//
+//           parkingSections.add(section);
+//         }
+//
+//
+//       }
+//
+//
+//       return Establishment.fromMap({
+//         ...est,
+//         'parking_rate': parkingRate?.toMap() ?? {},
+//         'parking_sections': parkingSections.map((section) => section.toMap()).toList(),
+//       });
+//     });
+//   }
+//
+//   EstablishmentController()
+//       : establishmentStream = supabase
+//       .from('establishments')
+//       .stream(primaryKey: ['establishment_id'])
+//       .eq('availability_status', 'operating')
+//       .order('created_at', ascending: true)
+//       .limit(10)
+//       .asyncMap((data) async {
+//     List<Establishment> establishments = [];
+//
+//     print('Found: ${data.length} establishments');
+//
+//     for (var est in data) {
+//       final ratesResponse = await supabase
+//           .from('parking_rates')
+//           .select('*')
+//           .eq('establishment_id', est['establishment_id'])
+//           .order('created_at', ascending: true);
+//
+//       ParkingRate? parkingRate;
+//       if (ratesResponse.isNotEmpty) {
+//         parkingRate = ParkingRate.fromMap(ratesResponse.first);
+//       }
+//
+//       int? parkingSlotsCount;
+//
+//       final sectionsResponse = await supabase
+//           .from('parking_sections')
+//           .select('*')
+//           .eq('establishment_id', est['establishment_id'])
+//           .order('created_at', ascending: true);
+//
+//       if (sectionsResponse.isNotEmpty) {
+//         for (var sectionMap in sectionsResponse) {
+//           // Query the count of parking slots for each section
+//           final countResponse = await supabase
+//               .from('parking_slots')
+//               .select()
+//               .eq('section_id', sectionMap['section_id'])
+//               .eq('status', 'available')
+//               .count(); // Use single() to get a single row response
+//
+//           if (countResponse.count > 0) {
+//             parkingSlotsCount = countResponse.count; // Get the count from the response
+//           }
+//         }
+//       }
+//       establishments.add(Establishment.fromMap({
+//         ...est,
+//         'parking_rate': parkingRate?.toMap() ?? {},
+//         'parking_slots_count': parkingSlotsCount,
+//       }));
+//     }
+//
+//     return establishments;
+//   });
+//
+//
+// }

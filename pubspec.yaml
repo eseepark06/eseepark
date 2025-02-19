@@ -52,9 +52,10 @@ dependencies:
   dropdown_button2: ^2.3.9
   shimmer: ^3.0.0
   intl: ^0.20.2
+  geolocator: ^13.0.2
 
 flutter_native_splash:
-  color: "#F09F1D"
+  color: "#151515"
   android: true
   ios: true
   android_12:

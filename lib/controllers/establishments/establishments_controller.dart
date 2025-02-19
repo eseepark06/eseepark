@@ -1,6 +1,7 @@
 import 'package:eseepark/models/establishment_model.dart';
 import 'package:eseepark/models/parking_rate_model.dart';
 import 'package:eseepark/models/parking_section_model.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../main.dart';
 import '../../models/parking_slot_model.dart';
 
@@ -125,4 +126,120 @@ class EstablishmentController {
 
     return establishments;
   });
+
+
+  Future<List<Establishment>> getNearbyEstablishmentsWithLocation({
+    required double radiusKm,
+    required int maxResults,
+  }) async {
+    print('doing');
+    try {
+      // Check location permissions and get current position
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          print('Location permissions are denied');
+          return [];
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        print('Location permissions are permanently denied');
+        return [];
+      }
+
+      // Get the user's current location
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      // Fetch nearby establishments
+      final data = await supabase.rpc('get_nearby_establishments', params: {
+        'user_lat': true ? 14.65688762458187 : position.latitude,
+        'user_lng': true ? 121.10794013558173 : position.longitude,
+        'radius_km': radiusKm,
+        'max_results': maxResults,
+      });
+
+      // Debug print to inspect the raw data
+      if (data == null) {
+        print('Supabase RPC returned null');
+        return [];
+      }
+      print('Raw data from API: $data');
+
+      List<Establishment> establishments = [];
+
+      for (var est in data) {
+        if (est == null) {
+          print('One of the establishments is null');
+          continue;
+        }
+        print('Processing establishment: ${est['id']}');
+
+        // Fetch parking rates
+        final ratesResponse = await supabase
+            .from('parking_rates')
+            .select('*')
+            .eq('establishment_id', est['id'])
+            .order('created_at', ascending: true);
+
+        ParkingRate? parkingRate;
+        if (ratesResponse == null) {
+          print('Rates response is null for establishment ID: ${est['id']}');
+        } else if (ratesResponse.isNotEmpty) {
+          parkingRate = ParkingRate.fromMap(ratesResponse.first);
+        }
+
+        // Fetch parking sections
+        final sectionsResponse = await supabase
+            .from('parking_sections')
+            .select('*')
+            .eq('establishment_id', est['id'])
+            .order('created_at', ascending: true);
+
+        int parkingSlotsCount = 0; // Default value
+        if (sectionsResponse == null) {
+          print('Sections response is null for establishment ID: ${est['id']}');
+        } else if (sectionsResponse.isNotEmpty) {
+          for (var sectionMap in sectionsResponse) {
+            if (sectionMap == null) continue;
+
+            // Query the count of parking slots for each section
+            final countResponse = await supabase
+                .from('parking_slots')
+                .select()
+                .eq('section_id', sectionMap['section_id'])
+                .eq('status', 'available')
+                .count();
+
+            if (countResponse == null) {
+              print('Parking slots count response is null for section ID: ${sectionMap['section_id']}');
+            } else {
+              parkingSlotsCount += countResponse.count ?? 0;
+            }
+          }
+        }
+
+        Map<String, dynamic> updatedMap = {
+          ...est,
+          'parking_rate': parkingRate?.toMap() ?? {},
+          'parking_slots_count': parkingSlotsCount,
+          'establishment_id': est['id'], // Add new key with old value
+        }..remove('id'); // Remove the old key
+
+        // Ensure that we are not adding null values
+        establishments.add(Establishment.fromMap(updatedMap));
+      }
+
+      return establishments;
+    } catch (e, stackTrace) {
+      print('Error fetching nearby establishments: $e');
+      print(stackTrace);
+      return [];
+    }
+  }
+
+
 }

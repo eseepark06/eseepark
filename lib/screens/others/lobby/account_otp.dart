@@ -87,7 +87,7 @@ class _OTPAccountState extends State<OTPAccount> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      backgroundColor: Colors.white,
       resizeToAvoidBottomInset: true,
       body: SingleChildScrollView(
         physics: const NeverScrollableScrollPhysics(),
@@ -95,23 +95,17 @@ class _OTPAccountState extends State<OTPAccount> {
           height: screenHeight,
           width: screenWidth,
           decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  colors: [
-                    const Color(0xFFF09F1D),
-                    const Color(0xFFD96717)
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter
-              )
+            color: Colors.white
           ),
           child: Stack(
             children: [
               Column(
                 children: [
-                  SizedBox(height: screenHeight * 0.04),
-                  Image.asset('assets/images/general/eseepark-transparent-logo-768.png',
-                    width: screenWidth * 0.4,
+                  SizedBox(height: screenHeight * 0.11),
+                  Image.asset('assets/images/general/eseepark-transparent-logo-bnw.png',
+                    width: screenWidth * 0.15,
                   ),
+                  SizedBox(height: screenHeight * 0.08),
                   Container(
                       width: screenWidth,
                       padding: EdgeInsets.symmetric(
@@ -122,14 +116,14 @@ class _OTPAccountState extends State<OTPAccount> {
                         children: [
                           Text('Enter One-Time Code',
                             style: TextStyle(
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.primary,
                                 fontWeight: FontWeight.w800,
                                 fontSize: screenSize * 0.024
                             ),
                           ),
                         ],
                       )
-                  ),
+                  ), 
                   Container(
                       width: screenWidth,
                       padding: EdgeInsets.symmetric(
@@ -141,8 +135,8 @@ class _OTPAccountState extends State<OTPAccount> {
                         children: [
                           Text('A one-time code was sent to your email, kindly check your inbox or spam folder.',
                             style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.9),
-                                fontWeight: FontWeight.w300,
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
+                                fontWeight: FontWeight.w400,
                                 fontSize: screenSize * 0.012,
                                 height: 1.6
                             ),
@@ -153,7 +147,7 @@ class _OTPAccountState extends State<OTPAccount> {
                               numberOfFields: 6,
                               showFieldAsBox: true,
                               borderWidth: 0,
-                              cursorColor: Colors.white,
+                              cursorColor: Theme.of(context).colorScheme.primary,
                               borderColor: Colors.transparent,
                               keyboardType: TextInputType.number,
                               borderRadius: BorderRadius.circular(10),
@@ -174,7 +168,7 @@ class _OTPAccountState extends State<OTPAccount> {
                                 disabledBorder: InputBorder.none,
                               ),
                               textStyle: TextStyle(
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.primary,
                                 fontSize: screenSize * 0.015,
                                 fontWeight: FontWeight.bold
                               ),
@@ -200,7 +194,7 @@ class _OTPAccountState extends State<OTPAccount> {
                               children: [
                                 Text("Didn't receive the code?",
                                   style: TextStyle(
-                                      color: Colors.white,
+                                      color: Theme.of(context).colorScheme.primary,
                                       fontSize: screenSize * 0.011
                                   ),
                                 ),
@@ -210,7 +204,7 @@ class _OTPAccountState extends State<OTPAccount> {
                                       TextSpan(
                                         text: resendText,
                                         style: TextStyle(
-                                            color: Colors.white,
+                                            color: codeSeconds == 0 ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                                             fontWeight: FontWeight.bold,
                                             fontSize: screenSize * 0.013,
                                             fontFamily: 'Poppins',
@@ -244,7 +238,7 @@ class _OTPAccountState extends State<OTPAccount> {
                                           } catch(e) {
                                             final error = e as AuthException;
                                             print('Error resending code: $e');
-                                            Get.snackbar('Cooldown in Progress!', 'Resend code cooldown in progress please wait for ${formatTimeFromMessage(error.message)} ${error.message.contains('seconds') ? 'seconds' : 'minutes'}', backgroundColor: Colors.red, colorText: Colors.white, duration: const Duration(seconds: 2));
+                                            Get.snackbar('Cooldown in Progress!', 'Resend code cooldown in progress please wait for ${formatTimeFromMessage(error.message)} ${error.message.contains('seconds') ? 'seconds' : 'minutes'}', backgroundColor: Colors.red, colorText: Theme.of(context).colorScheme.primary, duration: const Duration(seconds: 2));
 
                                             setState(() {
                                               resendText = 'Resend Code';
@@ -257,7 +251,7 @@ class _OTPAccountState extends State<OTPAccount> {
                                       TextSpan(
                                         text: ' in ${formatTime(codeSeconds)} ${codeSeconds > 60 ? 'minutes' : 'seconds'}',
                                         style: TextStyle(
-                                            color: Colors.white,
+                                            color: Theme.of(context).colorScheme.primary,
                                             fontSize: screenSize * 0.011,
                                             fontFamily: 'Poppins',
                                         ),
@@ -312,18 +306,18 @@ class _OTPAccountState extends State<OTPAccount> {
                                   duration: const Duration(milliseconds: 400)
                               );
                             } else {
-                              Get.snackbar('Error', 'Invalid OTP', backgroundColor: Colors.red, colorText: Colors.white, duration: const Duration(seconds: 2));
+                              Get.snackbar('Error', 'Invalid OTP', backgroundColor: Colors.red, colorText: Theme.of(context).colorScheme.primary, duration: const Duration(seconds: 2));
                             }
                           } catch(e) {
                             print('Error found: $e');
                             setState(() {
                               processingOtp = false;
                             });
-                            Get.snackbar('Oops!', 'That OTP is incorrect or expired. Please double-check and try again.', backgroundColor: Colors.red, colorText: Colors.white, duration: const Duration(seconds: 2));
+                            Get.snackbar('Oops!', 'That OTP is incorrect or expired. Please double-check and try again.', backgroundColor: Colors.red, colorText: Theme.of(context).colorScheme.primary, duration: const Duration(seconds: 2));
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
+                          backgroundColor: Theme.of(context).colorScheme.primary,
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30)
@@ -333,8 +327,8 @@ class _OTPAccountState extends State<OTPAccount> {
                             horizontal: screenWidth * 0.06
                           )
                         ),
-                        child: processingOtp ? CupertinoActivityIndicator() :
-                          Text(widget.isNewAccount ? 'Next' : 'Done', style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenSize * 0.014),),
+                        child: processingOtp ? CupertinoActivityIndicator(color: Colors.white) :
+                          Text(widget.isNewAccount ? 'Next' : 'Done', style: TextStyle(fontWeight: FontWeight.bold, fontSize: screenSize * 0.014, color: Colors.white),),
                       )
                   )
               )

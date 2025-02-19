@@ -32,23 +32,25 @@ class _LobbyState extends State<Lobby> {
           height: screenHeight,
           width: screenWidth,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                const Color(0xFFF09F1D),
-                const Color(0xFFD96717)
-              ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter
-            )
+            color: Colors.white
+            // gradient: LinearGradient(
+            //   colors: [
+            //     const Color(0xFFF09F1D),
+            //     const Color(0xFFD96717)
+            //   ],
+            //   begin: Alignment.topCenter,
+            //   end: Alignment.bottomCenter
+            // )
           ),
           child: Stack(
             children: [
               Column(
                 children: [
-                  SizedBox(height: screenHeight * 0.04),
-                  Image.asset('assets/images/general/eseepark-transparent-logo-768.png',
-                    width: screenWidth * 0.4,
+                  SizedBox(height: screenHeight * 0.11),
+                  Image.asset('assets/images/general/eseepark-transparent-logo-bnw.png',
+                    width: screenWidth * 0.15,
                   ),
+                  SizedBox(height: screenHeight * 0.08),
                   Container(
                       width: screenWidth,
                       padding: EdgeInsets.symmetric(
@@ -59,14 +61,14 @@ class _LobbyState extends State<Lobby> {
                         children: [
                           Text('Hello There!',
                             style: TextStyle(
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.primary,
                                 fontWeight: FontWeight.w800,
                                 fontSize: screenSize * 0.024
                             ),
                           ),
                           Text('Ready To Park In?',
                             style: TextStyle(
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.primary,
                                 fontWeight: FontWeight.w800,
                                 fontSize: screenSize * 0.024
                             ),
@@ -85,8 +87,8 @@ class _LobbyState extends State<Lobby> {
                         children: [
                           Text('With your email as your username, you can access our parking services.',
                             style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.9),
-                              fontWeight: FontWeight.w300,
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
+                              fontWeight: FontWeight.w400,
                               fontSize: screenSize * 0.012,
                               height: 1.6
                             ),
@@ -96,19 +98,20 @@ class _LobbyState extends State<Lobby> {
                             title: '',
                             controller: emailController,
                             placeholder: 'Enter your email',
-                            backgroundColor: Color(0xFFB2B2B2).withValues(alpha: 0.4),
+                            cursorColor: Theme.of(context).colorScheme.primary,
+                            backgroundColor: Theme.of(context).colorScheme.secondary,
                             titleStyle: TextStyle(
-                              color: Colors.white,
+                              color: Colors.black,
                               fontFamily: 'Poppins',
                               fontWeight: FontWeight.w600,
                               fontSize: screenSize * 0.012
                             ),
                             placeholderStyle: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.6),
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
                               fontSize: screenSize * 0.012
                             ),
                             mainTextStyle: TextStyle(
-                                color: Colors.white,
+                                color: Colors.black,
                                 fontSize: screenSize * 0.012
                             ),
                             onChanged: (val) {
@@ -138,7 +141,7 @@ class _LobbyState extends State<Lobby> {
                         Flexible(
                             child: Text('By clicking next, you have read and agree to our Terms and Conditions and Privacy Policy.',
                               style: TextStyle(
-                                  color: Colors.white,
+                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
                                   fontSize: screenSize * 0.009
                               ),
                             )
@@ -159,9 +162,6 @@ class _LobbyState extends State<Lobby> {
 
                                     final check = await accountController.emailNextButton(emailController.text.trim());
 
-                                    setState(() {
-                                      processingEmail = false;
-                                    });
 
                                     if(check != null) {
                                       if(check == 1) {
@@ -169,6 +169,11 @@ class _LobbyState extends State<Lobby> {
                                           await supabase.auth.signInWithOtp(
                                             email: emailController.text.trim(),
                                           );
+
+
+                                          setState(() {
+                                            processingEmail = false;
+                                          });
 
                                           print('Proceeding to sign in');
 
@@ -192,7 +197,8 @@ class _LobbyState extends State<Lobby> {
                                             print('doesnt contain');
                                           }
                                         }
-                                      }else {
+                                      }
+                                      else {
                                         print('Proceeded with a null value so signing upp');
                                         try {
                                           final response = await supabase.auth.signUp(
@@ -207,12 +213,22 @@ class _LobbyState extends State<Lobby> {
                                               email: emailController.text.trim(),
                                             );
 
+
+                                            setState(() {
+                                              processingEmail = false;
+                                            });
+
                                             Get.to(() => OTPAccount(email: emailController.text.trim(), isNewAccount: true),
                                                 duration: const Duration(milliseconds: 300),
                                                 transition: Transition.cupertino
                                             );
                                           } else {
                                             print('Sent: $response');
+
+
+                                            setState(() {
+                                              processingEmail = false;
+                                            });
 
                                             Get.to(() => OTPAccount(email: emailController.text.trim(), isNewAccount: true),
                                                 duration: const Duration(milliseconds: 300),
@@ -238,6 +254,11 @@ class _LobbyState extends State<Lobby> {
                                         }
                                       }
                                     }
+
+
+                                    setState(() {
+                                      processingEmail = false;
+                                    });
                                   }
 
 
@@ -247,15 +268,17 @@ class _LobbyState extends State<Lobby> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16.0),
                                 ),
+                                backgroundColor: Theme.of(context).colorScheme.primary,
                                 padding: EdgeInsets.symmetric(
                                   vertical: screenHeight * 0.015,
                                   horizontal: screenWidth * 0.06
                                 )
                               ),
-                              child: processingEmail ? CupertinoActivityIndicator() : Row(
+                              child: processingEmail ? CupertinoActivityIndicator(color: Colors.white) : Row(
                                 children: [
                                   Text('Next',
                                     style: TextStyle(
+                                      color: Colors.white,
                                         fontWeight: FontWeight.bold,
                                         fontSize: screenSize * 0.014
                                     ),
@@ -263,6 +286,7 @@ class _LobbyState extends State<Lobby> {
                                   SizedBox(width: screenWidth * 0.01),
                                   Icon(Icons.arrow_forward,
                                     size: screenSize * 0.018,
+                                    color: Colors.white,
                                   )
                                 ],
                               ),

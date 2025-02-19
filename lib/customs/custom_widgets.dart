@@ -175,11 +175,14 @@ class _ParkingSlotTimerState extends State<ParkingSlotTimer> {
 
 
   String _formatDuration(Duration duration) {
-    int hours = duration.inHours;
+    int days = duration.inDays;
+    int hours = duration.inHours % 24;
     int minutes = duration.inMinutes % 60;
     int seconds = duration.inSeconds % 60;
 
-    if (hours > 0) {
+    if (days > 0) {
+      return '${days}d ${hours.toString().padLeft(2, '0')}h';
+    } else if (hours > 0) {
       return '${hours}h ${minutes}m';
     } else if (minutes > 0) {
       return '${minutes}m ${seconds.toString().padLeft(2, '0')}s';
@@ -187,7 +190,6 @@ class _ParkingSlotTimerState extends State<ParkingSlotTimer> {
       return '${seconds.toString().padLeft(2, '0')}s';
     }
   }
-
 
   @override
   void dispose() {

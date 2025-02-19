@@ -21,6 +21,7 @@ class CustomTextFieldWithLabel extends StatefulWidget {
   final Color? disabledBorderColor;
   final Color? enabledBorderColor;
   final Color? focusedBorderColor;
+  final Color? cursorColor;
 
   const CustomTextFieldWithLabel({
     super.key,
@@ -38,7 +39,8 @@ class CustomTextFieldWithLabel extends StatefulWidget {
     this.borderWidth,
     this.disabledBorderColor,
     this.enabledBorderColor,
-    this.focusedBorderColor
+    this.focusedBorderColor,
+    this.cursorColor
   });
 
   @override
@@ -79,6 +81,7 @@ class _CustomTextFieldWithLabelState extends State<CustomTextFieldWithLabel> {
               controller: widget.controller,
               onChanged: widget.onChanged,
               style: widget.mainTextStyle,
+              cursorColor: widget.cursorColor,
               decoration: InputDecoration(
                 hintText: widget.placeholder,
                 hintStyle: widget.placeholderStyle,
@@ -142,6 +145,7 @@ class CustomTextField extends StatefulWidget {
   final Color? focusedBorderColor;
   final Widget? prefixWidget;
   final Icon? prefixIcon;
+  final Color? cursorColor;
 
   const CustomTextField({
     super.key,
@@ -159,7 +163,8 @@ class CustomTextField extends StatefulWidget {
     this.enabledBorderColor,
     this.focusedBorderColor,
     this.prefixWidget,
-    this.prefixIcon
+    this.prefixIcon,
+    this.cursorColor
   });
 
   @override
@@ -174,6 +179,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
       controller: widget.controller,
       onChanged: widget.onChanged,
       style: widget.mainTextStyle,
+      cursorColor: widget.cursorColor,
       decoration: InputDecoration(
         hintText: widget.placeholder,
         hintStyle: widget.placeholderStyle,

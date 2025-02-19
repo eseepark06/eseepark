@@ -4,8 +4,8 @@ ThemeData light = ThemeData(
   scaffoldBackgroundColor: const Color(0xFFF8F8FF),
   cardColor: const Color(0xFFFFFFFF),
   colorScheme: ColorScheme.light(
-    primary: const Color(0xFFF09F1D),
-    secondary: const Color(0xFFDDDDDD),
+    primary: const Color(0xFF151515),
+    secondary: const Color(0xFFE0E0E0),
     onPrimary: const Color(0xFF1C1C1C)
   )
 );
