@@ -23,7 +23,7 @@ class _SettingsState extends State<Settings> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         title: Text('Settings',
           style: TextStyle(
-            color: Theme.of(context).colorScheme.onPrimary,
+            color: Colors.white,
             fontWeight: FontWeight.w500,
             fontSize: screenSize * 0.017
           ),
@@ -60,7 +60,8 @@ class _SettingsState extends State<Settings> {
                         TextButton(
                           onPressed: () => Navigator.pop(context),
                           style: ButtonStyle(
-                            padding: MaterialStateProperty.all(EdgeInsets.zero)
+                            padding: MaterialStateProperty.all(EdgeInsets.zero),
+                            splashFactory: NoSplash.splashFactory,
                           ),
                           child: Text('Cancel',
                             style: TextStyle(
@@ -98,9 +99,9 @@ class _SettingsState extends State<Settings> {
                               },
                               style: ButtonStyle(
                                 padding: MaterialStateProperty.all(EdgeInsets.symmetric(
-                                  horizontal: screenWidth * 0.05
+                                  horizontal: screenWidth * 0.03
                                 )),
-                                minimumSize: MaterialStateProperty.all(Size(screenWidth * 0.25, screenHeight * 0.05)),
+                                minimumSize: MaterialStateProperty.all(Size(screenWidth * 0.22, screenHeight * 0.045)),
                                 backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary),
                               ),
                               child: value ? CupertinoActivityIndicator(color: Colors.white) :

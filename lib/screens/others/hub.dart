@@ -1,6 +1,8 @@
 import 'package:eseepark/globals.dart';
 import 'package:eseepark/screens/others/accounts/account.dart';
+import 'package:eseepark/screens/others/activity/activity.dart';
 import 'package:eseepark/screens/others/home/home.dart';
+import 'package:eseepark/screens/others/search/search.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -93,6 +95,7 @@ class _HubState extends State<Hub> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         height: screenHeight,
         width: screenWidth,
@@ -104,8 +107,8 @@ class _HubState extends State<Hub> {
                 onPageChanged: onPageChanged,
                 children: [
                   const Home(),
-                  Container(color: Colors.blue),
-                  Container(color: Colors.red),
+                  const Activity(),
+                  const Search(),
                   const Account(),
                 ],
               ),
@@ -121,7 +124,9 @@ class _HubState extends State<Hub> {
                 )
               ),
               padding: EdgeInsets.only(
-                bottom: screenHeight * 0.01
+                bottom: screenHeight * 0.018,
+                left: screenWidth * 0.02,
+                right: screenWidth * 0.02
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

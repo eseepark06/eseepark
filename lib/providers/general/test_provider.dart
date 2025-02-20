@@ -9,7 +9,6 @@ class TestProvider with ChangeNotifier {
   TestProvider._internal();
 
   Future<void> initialize() async {
-    print('Initializing test provider');
     await Future.delayed(const Duration(seconds: 3));
 
   }

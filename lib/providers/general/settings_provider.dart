@@ -8,7 +8,6 @@ class SettingsProvider with ChangeNotifier {
   SettingsProvider._internal();
 
   Future<void> initialize() async {
-    print('Initializing settings provider');
     await Future.delayed(const Duration(seconds: 2));
   }
 }

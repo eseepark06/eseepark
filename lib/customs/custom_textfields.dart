@@ -135,6 +135,8 @@ class CustomTextField extends StatefulWidget {
   final TextStyle? placeholderStyle;
   final TextStyle? mainTextStyle;
   final Function(String)? onChanged;
+  final Function(bool)? call;
+  final Function(String?)? onSubmit;
   final Color? backgroundColor;
   final double? verticalPadding;
   final double? horizontalPadding;
@@ -145,7 +147,10 @@ class CustomTextField extends StatefulWidget {
   final Color? focusedBorderColor;
   final Widget? prefixWidget;
   final Icon? prefixIcon;
+  final Icon? suffixIcon;
   final Color? cursorColor;
+  final bool? clearText;
+  final TextInputAction? textInputAction;
 
   const CustomTextField({
     super.key,
@@ -154,6 +159,8 @@ class CustomTextField extends StatefulWidget {
     this.placeholderStyle,
     this.mainTextStyle,
     this.onChanged,
+    this.call,
+    this.onSubmit,
     this.backgroundColor,
     this.verticalPadding,
     this.horizontalPadding,
@@ -164,7 +171,10 @@ class CustomTextField extends StatefulWidget {
     this.focusedBorderColor,
     this.prefixWidget,
     this.prefixIcon,
-    this.cursorColor
+    this.suffixIcon,
+    this.cursorColor,
+    this.clearText,
+    this.textInputAction
   });
 
   @override
@@ -172,14 +182,17 @@ class CustomTextField extends StatefulWidget {
 }
 
 class _CustomTextFieldState extends State<CustomTextField> {
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     return TextFormField(
       controller: widget.controller,
       onChanged: widget.onChanged,
+      onFieldSubmitted: widget.onSubmit,
       style: widget.mainTextStyle,
       cursorColor: widget.cursorColor,
+      textInputAction: widget.textInputAction,
       decoration: InputDecoration(
         hintText: widget.placeholder,
         hintStyle: widget.placeholderStyle,
@@ -188,6 +201,18 @@ class _CustomTextFieldState extends State<CustomTextField> {
         filled: true,
         prefix: widget.prefixWidget,
         prefixIcon: widget.prefixIcon,
+        suffixIcon: widget.clearText == true && widget.controller != null ? widget.controller!.text.trim().isNotEmpty ?
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                widget.controller?.clear();
+              });
+
+              widget.call!(true);
+            },
+            child: Icon(Icons.close)
+          ) : null :
+          widget.suffixIcon,
         contentPadding: EdgeInsets.symmetric(
             vertical: widget.verticalPadding ?? screenHeight * 0.01,
             horizontal: widget.horizontalPadding ?? screenWidth * 0.02

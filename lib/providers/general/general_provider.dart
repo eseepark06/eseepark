@@ -21,12 +21,10 @@ class GeneralProvider with ChangeNotifier {
   Future<void> _loadGetStarted() async {
     final prefs = await SharedPreferences.getInstance();
 
-    print(prefs.getKeys());
 
     _isGetStartedShown = prefs.getBool('isGetStartedShown') ?? false;
     _isInitialized = true;
 
-    print('Set initialize value to $_isInitialized');
 
     notifyListeners();
   }

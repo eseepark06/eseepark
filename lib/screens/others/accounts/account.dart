@@ -15,7 +15,9 @@ class Account extends StatefulWidget {
   State<Account> createState() => _AccountState();
 }
 
-class _AccountState extends State<Account> {
+class _AccountState extends State<Account> with AutomaticKeepAliveClientMixin<Account> {
+  @override
+  bool get wantKeepAlive => true;
 
   List<AccountStatus> statuses = [];
 
@@ -31,7 +33,7 @@ class _AccountState extends State<Account> {
       AccountStatus(
         title: DateFormat.yMMMd().format(DateTime.parse(supabase.auth.currentUser!.createdAt.toString())),
         icon: Icons.perm_contact_calendar_outlined,
-        backgroundColor: Colors.orange,
+        backgroundColor: Theme.of(Get.context as BuildContext).colorScheme.primary,
         fontColor: Colors.white,
         fontWeight: FontWeight.w600,
       )
@@ -47,21 +49,25 @@ class _AccountState extends State<Account> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        centerTitle: true,
+        title: Text('My Account',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600
+          ),
+        ),
+      ),
       body: Container(
         height: screenHeight,
         width: screenWidth,
-        padding: EdgeInsets.only(top: screenHeight * 0.1),
+        padding: EdgeInsets.only(top: screenHeight * 0.025),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              const Color(0xFFF3CF99).withOpacity(0.1),
-              Theme.of(context).scaffoldBackgroundColor,
-              Theme.of(context).scaffoldBackgroundColor,
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter
-          )
+          color: Theme.of(context).scaffoldBackgroundColor
         ),
         child: Column(
           children: [
@@ -124,7 +130,7 @@ class _AccountState extends State<Account> {
             ),
             SizedBox(height: screenHeight * 0.03),
             Section(
-              title: 'My Account',
+              title: 'Personal',
               children: [
                 SectionItem(title: 'Profile', showDivider: true),
                 SectionItem(title: 'Favorites')
