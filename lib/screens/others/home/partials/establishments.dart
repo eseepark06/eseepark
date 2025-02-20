@@ -28,9 +28,12 @@ class _EstablishmentsState extends State<Establishments> {
   Widget build(BuildContext context) {
     return Container(
       width: screenWidth,
-      height: screenHeight * 0.33,
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.secondary,
+            width: 1
+          ),
           boxShadow: [
             BoxShadow(
                 color: Colors.black.withOpacity(0.01),
@@ -43,7 +46,7 @@ class _EstablishmentsState extends State<Establishments> {
           Column(
             children: [
               Container(
-                height: screenHeight * 0.25,
+                height: screenHeight * 0.14,
                 decoration: BoxDecoration(
                     image: widget.establishment.image!.isNotEmpty
                         ? DecorationImage(
@@ -51,8 +54,171 @@ class _EstablishmentsState extends State<Establishments> {
                         fit: BoxFit.cover)
                         : null,
                     borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        topRight: Radius.circular(20))),
+                        topLeft: Radius.circular(15),
+                        topRight: Radius.circular(15))),
+              ),
+              Container(
+                constraints: BoxConstraints(
+                  minHeight: screenHeight * 0.125,
+                ),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(15),
+                      bottomRight: Radius.circular(15)
+                    ),
+                    color: Colors.white
+                ),
+                padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.04,
+                    vertical: screenHeight * 0.014
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.establishment.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    fontSize: screenSize * 0.012,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                                if(widget.establishment.distance != null)
+                                  Container(
+                                    margin: EdgeInsets.only(top: screenHeight * 0.003),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).colorScheme.primary,
+                                            borderRadius: BorderRadius.circular(5)
+                                          ),
+                                          padding: EdgeInsets.all(screenSize * 0.002),
+                                          child: Icon(Icons.location_on_sharp,
+                                            color: Colors.white,
+                                            size: screenWidth * 0.03,
+                                            applyTextScaling: false,
+                                            textDirection: TextDirection.ltr,
+                                          ),
+                                        ),
+                                        SizedBox(width: screenWidth * 0.015),
+                                        Text(
+                                          '${widget.establishment.distance?.toStringAsPrecision(2)} kilometers away',
+                                          style: TextStyle(
+                                              fontSize: screenSize * 0.009,
+                                              fontWeight: FontWeight.w400,
+                                              color: const Color(0xFF808080)),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(width: screenWidth * 0.02),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.star,
+                              size: screenSize * 0.014,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            Icon(
+                              Icons.star,
+                              size: screenSize * 0.014,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            Icon(
+                              Icons.star,
+                              size: screenSize * 0.014,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            Icon(
+                              Icons.star,
+                              size: screenSize * 0.014,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            Icon(
+                              Icons.star_half_rounded,
+                              size: screenSize * 0.014,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            SizedBox(width: screenWidth * 0.01),
+                            Text(
+                              4.5.toString(),
+                              style: TextStyle(
+                                  fontSize: screenSize * 0.011,
+                                  fontWeight: FontWeight.w400),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: screenHeight * 0.015),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(bottom: screenHeight * 0.008),
+                          child: RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text:
+                                  '₱${double.parse((widget.parkingRate?.flatRate ?? widget.parkingRate?.baseRate).toString()).toStringAsFixed(2)}',
+                                  style: TextStyle(
+                                      fontSize: screenSize * 0.017,
+                                      fontFamily: 'HelveticaNeue',
+                                      color: Theme.of(context).colorScheme.primary,
+                                    fontWeight: FontWeight.w800
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: widget.parkingRate?.flatRate == null
+                                      ? ' • First ${widget.parkingRate?.baseHours} hours'
+                                      : ' • Fixed Parking Fee',
+                                  style: TextStyle(
+                                      fontSize: screenSize * 0.009,
+                                      fontFamily: 'Poppins',
+                                      color: const Color(0xFF808080)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            disabledBackgroundColor: Theme.of(context).colorScheme.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)
+                            ),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: screenWidth * 0.04
+                            ),
+                            elevation: 0
+                          ),
+                          child: Text('Explore Now',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -88,8 +254,8 @@ class _EstablishmentsState extends State<Establishments> {
                   vertical: screenHeight * 0.01),
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.only(
-                      topRight: Radius.circular(20),
-                      bottomLeft: Radius.circular(20)),
+                      topRight: Radius.circular(15),
+                      bottomLeft: Radius.circular(15)),
                   color: (widget.parkingSlotsCount ?? 0) > 0
                       ? Theme.of(context).colorScheme.onPrimary
                       : const Color(0xFFD0D0D0)),
@@ -110,98 +276,6 @@ class _EstablishmentsState extends State<Establishments> {
                         height: 1,
                         fontSize: screenSize * 0.0095,
                         fontWeight: FontWeight.w400),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              height: screenHeight * 0.12,
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: Colors.white),
-              padding: EdgeInsets.symmetric(
-                  horizontal: screenWidth * 0.04,
-                  vertical: screenHeight * 0.014),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              widget.establishment.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                  fontSize: screenSize * 0.014,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              '${1} kilometers away',
-                              style: TextStyle(
-                                  fontSize: screenSize * 0.0095,
-                                  fontWeight: FontWeight.w400,
-                                  color: const Color(0xFF808080)),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(width: screenWidth * 0.02),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.star,
-                            size: screenSize * 0.014,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          SizedBox(width: screenWidth * 0.01),
-                          Text(
-                            4.5.toString(),
-                            style: TextStyle(
-                                fontSize: screenSize * 0.011,
-                                fontWeight: FontWeight.w400),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text:
-                              '₱${double.parse((widget.parkingRate?.flatRate ?? widget.parkingRate?.baseRate).toString()).toStringAsFixed(2)}',
-                              style: TextStyle(
-                                  fontSize: screenSize * 0.011,
-                                  fontFamily: 'HelveticaNeue',
-                                  color: const Color(0xFF808080)),
-                            ),
-                            TextSpan(
-                              text: widget.parkingRate?.flatRate == null
-                                  ? ' • First ${widget.parkingRate?.baseHours} hours'
-                                  : ' • Fixed Parking Fee',
-                              style: TextStyle(
-                                  fontSize: screenSize * 0.009,
-                                  fontFamily: 'Poppins',
-                                  color: const Color(0xFF808080)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),
