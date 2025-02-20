@@ -1,6 +1,8 @@
 import 'package:eseepark/customs/custom_textfields.dart';
+import 'package:eseepark/screens/others/home/partials/establishments.dart';
 import 'package:eseepark/screens/others/home/partials/parking_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shimmer/shimmer.dart';
@@ -38,6 +40,7 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
 
+
     onLoadPage();
   }
 
@@ -55,7 +58,7 @@ class _HomeState extends State<Home> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.primary,
       body: CustomScrollView(
         controller: scrollController,
         slivers: [
@@ -306,6 +309,7 @@ class _HomeState extends State<Home> {
                 )),
             sliver: SliverToBoxAdapter(
               child: Container(
+                color: Theme.of(context).scaffoldBackgroundColor,
                 child: Column(
                   children: [
                     Container(
@@ -394,190 +398,7 @@ class _HomeState extends State<Home> {
                                               return ParkingSheet(establishmentId: establishment.establishmentId);
                                             });
                                       },
-                                      child: Container(
-                                        width: screenWidth,
-                                        height: screenHeight * 0.33,
-                                        decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(20),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                  color: Colors.black.withOpacity(0.01),
-                                                  spreadRadius: 2,
-                                                  blurRadius: 3)
-                                            ]),
-                                        margin: EdgeInsets.only(bottom: screenHeight * 0.02),
-                                        child: Stack(
-                                          children: [
-                                            Column(
-                                              children: [
-                                                Container(
-                                                  height: screenHeight * 0.25,
-                                                  decoration: BoxDecoration(
-                                                      image: establishment.image!.isNotEmpty
-                                                          ? DecorationImage(
-                                                          image: NetworkImage(establishment.image!),
-                                                          fit: BoxFit.cover)
-                                                          : null,
-                                                      borderRadius: BorderRadius.only(
-                                                          topLeft: Radius.circular(20),
-                                                          topRight: Radius.circular(20))),
-                                                ),
-                                              ],
-                                            ),
-                                            Positioned(
-                                              top: screenHeight * 0.01,
-                                              left: screenWidth * 0.03,
-                                              child: Container(
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: screenWidth * 0.04,
-                                                    vertical: screenHeight * 0.003),
-                                                decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.circular(30),
-                                                    color: Theme.of(context).colorScheme.onPrimary),
-                                                child: Text(
-                                                  parkingMenus
-                                                      .where((e) => e.name == establishment.establishmentType)
-                                                      .toList()
-                                                      .first
-                                                      .name,
-                                                  style: TextStyle(
-                                                      color: Colors.white,
-                                                      fontSize: screenSize * 0.0095,
-                                                      fontWeight: FontWeight.w700),
-                                                ),
-                                              ),
-                                            ),
-                                            Positioned(
-                                              top: 0,
-                                              right: 0,
-                                              child: Container(
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: screenWidth * 0.04,
-                                                    vertical: screenHeight * 0.01),
-                                                decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.only(
-                                                        topRight: Radius.circular(20),
-                                                        bottomLeft: Radius.circular(20)),
-                                                    color: (parkingSlotsCount ?? 0) > 0
-                                                        ? Theme.of(context).colorScheme.onPrimary
-                                                        : const Color(0xFFD0D0D0)),
-                                                child: Column(
-                                                  children: [
-                                                    Text(
-                                                      parkingSlotsCount.toString(),
-                                                      style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: screenSize * 0.012,
-                                                          height: 1,
-                                                          fontWeight: FontWeight.w700),
-                                                    ),
-                                                    Text(
-                                                      'slots',
-                                                      style: TextStyle(
-                                                          color: Colors.white,
-                                                          height: 1,
-                                                          fontSize: screenSize * 0.0095,
-                                                          fontWeight: FontWeight.w400),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                            Positioned(
-                                              bottom: 0,
-                                              left: 0,
-                                              right: 0,
-                                              child: Container(
-                                                height: screenHeight * 0.12,
-                                                decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.circular(20),
-                                                    color: Colors.white),
-                                                padding: EdgeInsets.symmetric(
-                                                    horizontal: screenWidth * 0.04,
-                                                    vertical: screenHeight * 0.014),
-                                                child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  children: [
-                                                    Row(
-                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
-                                                        Expanded(
-                                                          child: Column(
-                                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                                            children: [
-                                                              Text(
-                                                                establishment.name,
-                                                                maxLines: 1,
-                                                                overflow: TextOverflow.ellipsis,
-                                                                style: TextStyle(
-                                                                    fontSize: screenSize * 0.014,
-                                                                    fontWeight: FontWeight.bold),
-                                                              ),
-                                                              Text(
-                                                                '${1} kilometers away',
-                                                                style: TextStyle(
-                                                                    fontSize: screenSize * 0.0095,
-                                                                    fontWeight: FontWeight.w400,
-                                                                    color: const Color(0xFF808080)),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                        SizedBox(width: screenWidth * 0.02),
-                                                        Row(
-                                                          children: [
-                                                            Icon(
-                                                              Icons.star,
-                                                              size: screenSize * 0.014,
-                                                              color: Theme.of(context).colorScheme.primary,
-                                                            ),
-                                                            SizedBox(width: screenWidth * 0.01),
-                                                            Text(
-                                                              4.5.toString(),
-                                                              style: TextStyle(
-                                                                  fontSize: screenSize * 0.011,
-                                                                  fontWeight: FontWeight.w400),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    Row(
-                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                      children: [
-                                                        RichText(
-                                                          text: TextSpan(
-                                                            children: [
-                                                              TextSpan(
-                                                                text:
-                                                                '₱${double.parse((parkingRate?.flatRate ?? parkingRate?.baseRate).toString()).toStringAsFixed(2)}',
-                                                                style: TextStyle(
-                                                                    fontSize: screenSize * 0.011,
-                                                                    fontFamily: 'HelveticaNeue',
-                                                                    color: const Color(0xFF808080)),
-                                                              ),
-                                                              TextSpan(
-                                                                text: parkingRate?.flatRate == null
-                                                                    ? ' • First ${parkingRate?.baseHours} hours'
-                                                                    : ' • Fixed Parking Fee',
-                                                                style: TextStyle(
-                                                                    fontSize: screenSize * 0.009,
-                                                                    fontFamily: 'Poppins',
-                                                                    color: const Color(0xFF808080)),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
+                                      child: Establishments(establishment: establishment, parkingMenus: parkingMenus, parkingRate: parkingRate, parkingSlotsCount: parkingSlotsCount),
                                     );
                                   }).toList(),
                                 ),
