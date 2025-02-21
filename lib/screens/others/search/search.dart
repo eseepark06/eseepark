@@ -4,6 +4,7 @@ import 'package:eseepark/globals.dart';
 import 'package:eseepark/models/establishment_model.dart';
 import 'package:eseepark/models/search_model.dart';
 import 'package:eseepark/providers/root_provider.dart';
+import 'package:eseepark/screens/others/search/partials/show_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -167,15 +168,65 @@ class _SearchState extends State<Search> {
                      padding: EdgeInsets.only(top: screenHeight * 0.005),
                      child: !isSearching ?
                       ListView.builder(
-                       itemCount: searchedData.length,
+                       itemCount: searchedData.length + 1,
                        shrinkWrap: true,
                        physics: const NeverScrollableScrollPhysics(),
                        itemBuilder: (context, index) {
+                         if(index == searchedData.length) {
+                           return InkWell(
+                             onTap: () {
+                               print('Going');
+                             },
+                             child: Container(
+                               margin: EdgeInsets.only(top: screenHeight * 0.01, bottom: screenHeight * 0.01),
+                               padding: EdgeInsets.symmetric(
+                                   horizontal: screenWidth * 0.05
+                               ),
+                               child: Row(
+                                 children: [
+                                   Container(
+                                     height: screenWidth * 0.1,
+                                     width: screenWidth * 0.1,
+                                     decoration: BoxDecoration(
+                                       border: Border.all(
+                                         color: Theme.of(context).colorScheme.secondary,
+                                         width: 1,
+                                       ),
+                                       borderRadius: BorderRadius.circular(8),
+                                     ),
+                                     padding: EdgeInsets.all(screenWidth * 0.021),
+                                     child: SvgPicture.asset('assets/svgs/home/search.svg',
+                                       width: screenWidth * 0.04,
+                                     ),
+                                   ),
+                                   SizedBox(width: screenWidth * 0.04),
+                                   Container(
+                                     child: Column(
+                                       crossAxisAlignment: CrossAxisAlignment.start,
+                                       children: [
+                                         Text(searchController.text.trim()),
+                                         Text('Search',
+                                           style: TextStyle(
+                                               color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                                               fontSize: screenWidth * 0.025
+                                           ),
+                                         )
+                                       ],
+                                     ),
+                                   ),
+                                 ],
+                               ),
+                             ),
+                           );
+                         }
+
                          final establishment = searchedData[index];
+
                          return InkWell(
-                           onTap: () {
-                             print('Going');
-                           },
+                           onTap: () => Get.to(() => ShowInfo(selectedEstablishment: establishment),
+                             duration: Duration(milliseconds: 300),
+                             transition: Transition.downToUp
+                           ),
                            child: Container(
                              margin: EdgeInsets.only(top: screenHeight * 0.01, bottom: screenHeight * 0.01),
                              padding: EdgeInsets.symmetric(

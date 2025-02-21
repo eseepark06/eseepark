@@ -1,4 +1,6 @@
-  import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
+  import 'dart:io';
+
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:eseepark/customs/custom_textfields.dart';
   import 'package:eseepark/screens/others/home/partials/establishments.dart';
   import 'package:eseepark/screens/others/home/partials/parking_sheet.dart';
@@ -83,8 +85,8 @@ import 'package:get/get.dart';
       // Update the status bar style based on isPinned
       SystemChrome.setSystemUIOverlayStyle(
         SystemUiOverlayStyle(
-          statusBarBrightness: isPinned ? Brightness.light : Brightness.dark,
-          statusBarIconBrightness: isPinned ? Brightness.light : Brightness.dark,
+          statusBarBrightness: Platform.isAndroid ? isPinned ? Brightness.dark : Brightness.light : isPinned ? Brightness.light : Brightness.dark,
+          statusBarIconBrightness: Platform.isAndroid ? isPinned ? Brightness.dark : Brightness.light : isPinned ? Brightness.light : Brightness.dark,
         ),
       );
 

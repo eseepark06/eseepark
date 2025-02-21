@@ -159,7 +159,7 @@ class _GetStartedState extends State<GetStarted> {
                   padding: EdgeInsets.symmetric(
                     vertical: screenHeight * 0.018
                   ),
-                  backgroundColor: Color.lerp(Theme.of(context).colorScheme.primary, Colors.deepOrange, 0.4)
+                  backgroundColor: Theme.of(context).colorScheme.primary
                 ),
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 200),
