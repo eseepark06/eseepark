@@ -1,5 +1,7 @@
+import 'package:eseepark/controllers/establishments/establishments_controller.dart';
 import 'package:eseepark/customs/custom_textfields.dart';
 import 'package:eseepark/globals.dart';
+import 'package:eseepark/models/establishment_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
@@ -12,6 +14,7 @@ class Search extends StatefulWidget {
 }
 
 class _SearchState extends State<Search> {
+  final EstablishmentController controller = EstablishmentController();
   final TextEditingController searchController = TextEditingController();
 
   @override
@@ -36,10 +39,17 @@ class _SearchState extends State<Search> {
               child: CustomTextField(
                 placeholder: 'Search for establishments',
                 controller: searchController,
-                onChanged: (val) {
+                onChanged: (val) async {
                   setState(() {
 
                   });
+                 if(val.trim().isNotEmpty) {
+
+
+                   final data = await controller.searchEstablishments(searchText: val, maxResults: 10);
+
+                   print(data.length);
+                 }
                 },
                 call: (val) {
                   setState(() {
@@ -79,9 +89,15 @@ class _SearchState extends State<Search> {
         ),
         child: Column(
           children: [
-            SizedBox(height: screenHeight * 0.02),
+            SizedBox(height: screenHeight * 0.014),
             if(searchController.text.trim().isNotEmpty)
-             Text('Search for "${searchController.text.trim()}"')
+             Text('Search for "${searchController.text.trim()}"',
+               maxLines: 1,
+               overflow: TextOverflow.ellipsis,
+               style: TextStyle(
+                 fontWeight: FontWeight.w600,
+               ),
+             )
           ],
         ),
       ),
