@@ -58,7 +58,6 @@ import 'package:get/get.dart';
             isPinned = true;
           });
 
-          print('Changed to $isPinned');
         } else {
           setState(() {
             isPinned = false;
