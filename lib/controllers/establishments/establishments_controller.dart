@@ -41,7 +41,6 @@ class EstablishmentController {
           .order('created_at', ascending: true);
 
 
-
       for (var sectionMap in sectionsResponse) {
         ParkingSection section = ParkingSection.fromMap(sectionMap);
 
@@ -248,7 +247,7 @@ class EstablishmentController {
     List<String> vehicleTypes = const ['Car', 'Motorcycle'],
     List<String>? rateTypes,
   })
-  async {
+  async  {
     print('Filtering by: searchText: $searchText, maxResults: $maxResults, maxRadiusKm: $maxRadiusKm, vehicleTypes: $vehicleTypes, rateTypes: $rateTypes');
 
     try {

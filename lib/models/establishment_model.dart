@@ -14,6 +14,7 @@ class EstablishmentFields {
   static final String createdAt = 'created_at';
   static final String image = 'image';
   static final String coordinates = 'coordinates';
+  static final String supportedVehicleTypes = 'supported_vehicle_types';
 }
 
 class Establishment {
@@ -26,6 +27,8 @@ class Establishment {
   final DateTime createdAt;
   final String? image;
   final Map<String, dynamic> coordinates;
+
+  final List<String>? supportedVehicleTypes;
 
   final double? distance;
 
@@ -46,6 +49,7 @@ class Establishment {
     required this.createdAt,
     this.image,
     required this.coordinates,
+    this.supportedVehicleTypes,
     this.distance,
     this.parkingRate,
     this.parkingSections,
@@ -70,6 +74,10 @@ class Establishment {
       coordinates: map[EstablishmentFields.coordinates] is String
           ? jsonDecode(map[EstablishmentFields.coordinates] as String) as Map<String, dynamic>
           : map[EstablishmentFields.coordinates] as Map<String, dynamic>? ?? {},
+
+      supportedVehicleTypes: map[EstablishmentFields.supportedVehicleTypes] is List
+          ? (map[EstablishmentFields.supportedVehicleTypes] as List).cast<String>()
+          : null,
 
       // Ensure distance is correctly parsed as double
       distance: (map['distance'] is int)
@@ -102,6 +110,7 @@ class Establishment {
       EstablishmentFields.createdAt: createdAt.toIso8601String(),
       EstablishmentFields.image: image,
       EstablishmentFields.coordinates: coordinates,
+      EstablishmentFields.supportedVehicleTypes: supportedVehicleTypes,
       'distance': distance,
       'parking_rate': parkingRate?.toMap(), // Include parking rate
       'parking_sections': parkingSections?.map((x) => x.toMap()).toList(), // Include parking sections

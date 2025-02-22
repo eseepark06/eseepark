@@ -292,7 +292,7 @@ class _SearchState extends State<Search> {
                          final establishment = searchedData[index];
 
                          return InkWell(
-                           onTap: () => Get.to(() => ShowInfo(establishmentId: establishment.establishmentId),
+                           onTap: () => Get.to(() => ShowInfo(establishmentId: establishment.establishmentId, distance: establishment.distance),
                                duration: Duration(milliseconds: 300),
                                transition: Transition.downToUp
                            ),
