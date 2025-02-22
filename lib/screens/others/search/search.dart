@@ -4,6 +4,7 @@ import 'package:eseepark/globals.dart';
 import 'package:eseepark/models/establishment_model.dart';
 import 'package:eseepark/models/search_model.dart';
 import 'package:eseepark/providers/root_provider.dart';
+import 'package:eseepark/screens/others/search/partials/search_filter.dart';
 import 'package:eseepark/screens/others/search/partials/show_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +22,7 @@ class Search extends StatefulWidget {
 class _SearchState extends State<Search> {
   final EstablishmentController controller = EstablishmentController();
   final TextEditingController searchController = TextEditingController();
+  Map<String, dynamic> searchFilter = {};
 
   List<Establishment> searchedData = [];
   bool isSearching = false;
@@ -68,6 +70,23 @@ class _SearchState extends State<Search> {
     return TextSpan(children: spans);
   }
 
+  Future<void> loadSearch(String val) async {
+    if(searchFilter.isNotEmpty) {
+      searchedData = await controller.searchEstablishmentsWithFilters(
+        searchText: val,
+        maxResults: 10,
+        vehicleTypes: searchFilter['vehicle_type'] ?? ['Car', 'Motorcycle'],
+        maxRadiusKm: searchFilter['max_radius_km'],
+        rateTypes: searchFilter['rate_type'],
+      );
+    } else {
+      searchedData = await controller.searchEstablishments(
+          searchText: val,
+          maxResults: 10
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +112,9 @@ class _SearchState extends State<Search> {
                    setState(() {
                      isSearching = true;
                    });
-                   searchedData = await controller.searchEstablishments(searchText: val, maxResults: 10);
+
+                   await loadSearch(val);
+
 
                    // await Future.delayed(Duration(seconds: 2));
                    setState(() {
@@ -134,9 +155,44 @@ class _SearchState extends State<Search> {
               ),
             ),
             SizedBox(width: screenWidth * 0.04),
-            Container(
-              width: screenWidth * 0.07,
-              child: Icon(Icons.filter_list_outlined, size: screenSize * 0.02),
+            InkWell(
+              onTap: () => showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  showDragHandle: true,
+                  enableDrag: true,
+                  builder: (context) => SearchFilter(filter: searchFilter)
+              ).then((val) async {
+                if(val is Map<String, dynamic>) {
+                  setState(() {
+                    searchFilter = val;
+                  });
+
+                  FocusScope.of(Get.context as BuildContext).unfocus();
+
+
+
+                  if(searchController.text.trim().isNotEmpty) {
+                    setState(() {
+                      isSearching = true;
+                    });
+
+                    await loadSearch(searchController.text.trim());
+
+                  }
+                  setState(() {
+                    isSearching = false;
+                  });
+                }
+              }),
+              borderRadius: BorderRadius.circular(8),
+              splashColor: Colors.transparent,
+              splashFactory: NoSplash.splashFactory,
+              highlightColor: Colors.transparent,
+              child: Container(
+                width: screenWidth * 0.07,
+                child: Icon(Icons.filter_list_outlined, size: screenSize * 0.02),
+              ),
             )
           ],
         ),

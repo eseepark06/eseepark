@@ -3,7 +3,7 @@ import 'package:eseepark/models/parking_section_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 import '../../../globals.dart';
 import '../../../main.dart';
 import '../../../models/parking_slot_model.dart';
@@ -239,31 +239,43 @@ class _BookingState extends State<Booking> {
                               ],
                             ),
                             SizedBox(height: screenHeight * 0.02),
-                            Container(
-                              width: screenWidth,
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Theme.of(context).colorScheme.onPrimary, width: .3),
-                                color: Theme.of(context).colorScheme.onPrimary,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: EdgeInsets.symmetric(
-                                  vertical: screenHeight * 0.013,
-                                  horizontal: screenWidth * 0.05
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.directions, color: Colors.white, size: screenWidth * 0.05),
-                                  SizedBox(width: screenWidth * 0.02),
-                                  Text('Get Directions',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: screenSize * 0.011,
-                                        fontWeight: FontWeight.w600
-                                    ),
-                                  )
-                                ],
+                            InkWell(
+                              onTap: () async  {
+                                print('Latitude: ${establishment.coordinates['lat']}');
+                                print('Longitude: ${establishment.coordinates['lng']}');
+
+                                final Uri url = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=${establishment.coordinates['lat']},${establishment.coordinates['lng']}');
+
+                                if (!await launchUrl(url)) {
+                                  throw 'Could not launch $url';
+                                }
+                              },
+                              child: Container(
+                                width: screenWidth,
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Theme.of(context).colorScheme.onPrimary, width: .3),
+                                  color: Theme.of(context).colorScheme.onPrimary,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: screenHeight * 0.013,
+                                    horizontal: screenWidth * 0.05
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.directions, color: Colors.white, size: screenWidth * 0.05),
+                                    SizedBox(width: screenWidth * 0.02),
+                                    Text('Get Directions',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: screenSize * 0.011,
+                                          fontWeight: FontWeight.w600
+                                      ),
+                                    )
+                                  ],
+                                ),
                               ),
                             )
                           ],

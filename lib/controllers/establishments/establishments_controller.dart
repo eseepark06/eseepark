@@ -240,10 +240,92 @@ class EstablishmentController {
     }
   }
 
+  Future<List<Establishment>> searchEstablishmentsWithFilters({
+    required String searchText,
+    int maxResults = 10,
+    double maxRadiusKm = 5.0,
+    List<String> vehicleTypes = const ['Car', 'Motorcycle'],
+    List<String>? rateTypes,
+  })
+  async {
+    print('Filtering by: searchText: $searchText, maxResults: $maxResults, maxRadiusKm: $maxRadiusKm, vehicleTypes: $vehicleTypes, rateTypes: $rateTypes');
+
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          print('Location permissions are denied');
+          return [];
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        print('Location permissions are permanently denied');
+        return [];
+      }
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      final response = await supabase.rpc(
+        'search_nearby_establishments_with_filters',
+        params: {
+          'user_lat': true ? 14.65688762458187 : position.latitude,
+          'user_lng': true ? 121.10794013558173 : position.longitude,
+          'search_text': searchText,
+          'max_results': maxResults,
+          'max_radius_km': maxRadiusKm,
+          'vehicle_types': vehicleTypes,
+          'rate_types': rateTypes,
+        },
+      );
+
+      if (response == null || response is! List) {
+        print('Supabase RPC returned null or invalid response');
+        return [];
+      }
+
+      print(response);
+
+      final List<Establishment> establishments = List<Map<String, dynamic>>.from(response).map((est) {
+        return Establishment.fromMap({
+          ...est,
+          'establishment_id': est['id'],
+          'parking_rate': {
+            'rate_type': est['rate_type']?.toString() ?? '',  // Ensures String or empty string
+            'flat_rate': est['flat_rate'] != null ? (est['flat_rate'] as num).toDouble() : 0.0,
+            'base_rate': est['base_rate'] != null ? (est['base_rate'] as num).toDouble() : 0.0,
+            'base_hours': est['base_hours'] as int?,
+            'extra_hourly_rate': est['extra_hourly_rate'] != null ? (est['extra_hourly_rate'] as num).toDouble() : 0.0,
+            'max_daily_rate': est['max_daily_rate'] != null ? (est['max_daily_rate'] as num).toDouble() : 0.0,
+          }
+        });
+      }).toList();
+
+
+      for (var est in establishments) {
+        print('Estab Id: ${est.establishmentId}');
+        print('Parking Rate: ${est.parkingRate?.flatRate}');
+      }
+
+      return establishments;
+    } catch (e) {
+      print('Error fetching establishments: $e');
+      return [];
+    }
+  }
+
+
+
+
+
   Future<List<Establishment>> searchEstablishments({
     required String searchText,
     required int maxResults,
-  }) async {
+  })
+  async {
     try {
       // Check location permissions and get current position
       LocationPermission permission = await Geolocator.checkPermission();
@@ -270,7 +352,8 @@ class EstablishmentController {
         'user_lat': true ? 14.65688762458187 : position.latitude,
         'user_lng': true ? 121.10794013558173 : position.longitude,
         'search_text': searchText,
-        'max_results': maxResults
+        'max_results': maxResults,
+        'max_radius_km': 100
       });
 
       // Debug print to inspect the raw data

@@ -35,20 +35,37 @@ class ParkingRate {
     required this.createdAt,
   });
 
-  // Factory constructor to create an instance from a Map
+  // // Factory constructor to create an instance from a Map
+  // factory ParkingRate.fromMap(Map<String, dynamic> map) {
+  //   return ParkingRate(
+  //     rateId: map[ParkingRateFields.rateId] as String,
+  //     establishmentId: map[ParkingRateFields.establishmentId] as String,
+  //     rateType: map[ParkingRateFields.rateType] as String,
+  //     flatRate: map[ParkingRateFields.flatRate] != null ? (map[ParkingRateFields.flatRate] as num).toDouble() : null,
+  //     baseRate: map[ParkingRateFields.baseRate] != null ? (map[ParkingRateFields.baseRate] as num).toDouble() : null,
+  //     baseHours: map[ParkingRateFields.baseHours] as int?,
+  //     extraHourlyRate: map[ParkingRateFields.extraHourlyRate] != null ? (map[ParkingRateFields.extraHourlyRate] as num).toDouble() : null,
+  //     maxDailyRate: map[ParkingRateFields.maxDailyRate] != null ? (map[ParkingRateFields.maxDailyRate] as num).toDouble() : null,
+  //     createdAt: DateTime.parse(map[ParkingRateFields.createdAt] as String),
+  //   );
+  // }
+
   factory ParkingRate.fromMap(Map<String, dynamic> map) {
     return ParkingRate(
-      rateId: map[ParkingRateFields.rateId] as String,
-      establishmentId: map[ParkingRateFields.establishmentId] as String,
-      rateType: map[ParkingRateFields.rateType] as String,
+      rateId: map[ParkingRateFields.rateId] as String? ?? '',
+      establishmentId: map[ParkingRateFields.establishmentId] as String? ?? '',
+      rateType: map[ParkingRateFields.rateType] as String? ?? '',
       flatRate: map[ParkingRateFields.flatRate] != null ? (map[ParkingRateFields.flatRate] as num).toDouble() : null,
       baseRate: map[ParkingRateFields.baseRate] != null ? (map[ParkingRateFields.baseRate] as num).toDouble() : null,
-      baseHours: map[ParkingRateFields.baseHours] as int?,
+      baseHours: map[ParkingRateFields.baseHours] as int?, // Ensure it's nullable
       extraHourlyRate: map[ParkingRateFields.extraHourlyRate] != null ? (map[ParkingRateFields.extraHourlyRate] as num).toDouble() : null,
       maxDailyRate: map[ParkingRateFields.maxDailyRate] != null ? (map[ParkingRateFields.maxDailyRate] as num).toDouble() : null,
-      createdAt: DateTime.parse(map[ParkingRateFields.createdAt] as String),
+      createdAt: map[ParkingRateFields.createdAt] != null
+          ? DateTime.tryParse(map[ParkingRateFields.createdAt] as String) ?? DateTime.now()
+          : DateTime.now(),
     );
   }
+
 
   // Convert an instance to a Map
   Map<String, dynamic> toMap() {

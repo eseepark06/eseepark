@@ -54,6 +54,8 @@ dependencies:
   intl: ^0.20.2
   geolocator: ^13.0.2
   custom_refresh_indicator: ^4.0.1
+  url_launcher: ^6.3.1
+  syncfusion_flutter_sliders: ^28.2.6
 
 flutter_native_splash:
   color: "#151515"
@@ -91,6 +93,7 @@ flutter:
     - assets/images/home/establishments/
     - assets/svgs/home/
     - assets/svgs/hub/
+    - assets/svgs/search/
 
   fonts:
     - family: HelveticaNeue

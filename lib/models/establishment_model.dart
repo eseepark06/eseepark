@@ -90,8 +90,6 @@ class Establishment {
     );
   }
 
-
-
   // Convert an instance to a Map
   Map<String, dynamic> toMap() {
     return {
