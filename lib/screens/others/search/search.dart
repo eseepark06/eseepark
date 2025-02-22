@@ -71,21 +71,23 @@ class _SearchState extends State<Search> {
   }
 
   Future<void> loadSearch(String val) async {
-    if(searchFilter.isNotEmpty) {
+    if (searchFilter.isNotEmpty) {
       searchedData = await controller.searchEstablishmentsWithFilters(
         searchText: val,
         maxResults: 10,
-        vehicleTypes: searchFilter['vehicle_type'] ?? ['Car', 'Motorcycle'],
-        maxRadiusKm: searchFilter['max_radius_km'],
-        rateTypes: searchFilter['rate_type'],
+        vehicleTypes: (searchFilter['vehicle_type'] as List?)?.cast<String>() ?? ['Car', 'Motorcycle'],
+        maxRadiusKm: searchFilter['max_radius_km'] as double? ?? 100,
+        rateTypes: (searchFilter['rate_types'] as List?)?.map((e) => e.toString().toLowerCase()).toList() ?? ['flat_rate', 'tiered_hourly'],
       );
     } else {
       searchedData = await controller.searchEstablishments(
-          searchText: val,
-          maxResults: 10
+        searchText: val,
+        maxResults: 10,
       );
     }
   }
+
+
 
 
   @override
@@ -98,100 +100,111 @@ class _SearchState extends State<Search> {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: true,
-        title: Row(
+        title: Stack(
           children: [
-            Expanded(
-              child: CustomTextField(
-                placeholder: 'Search for establishments',
-                controller: searchController,
-                onChanged: (val) async {
-                  setState(() {
-                    searchedData.clear();
-                  });
-                 if(val.trim().isNotEmpty) {
-                   setState(() {
-                     isSearching = true;
-                   });
+            Row(
+              children: [
+                Expanded(
+                  child: CustomTextField(
+                    placeholder: 'Search here',
+                    controller: searchController,
+                    onChanged: (val) async {
+                      setState(() {
+                        searchedData.clear();
+                      });
+                     if(val.trim().isNotEmpty) {
+                       setState(() {
+                         isSearching = true;
+                       });
 
-                   await loadSearch(val);
+                       await loadSearch(val);
 
 
-                   // await Future.delayed(Duration(seconds: 2));
-                   setState(() {
-                     isSearching = false;
-                   });
-                 }
-                },
-                call: (val) {
-                  setState(() {
+                       // await Future.delayed(Duration(seconds: 2));
+                       setState(() {
+                         isSearching = false;
+                       });
+                     }
+                    },
+                    call: (val) {
+                      setState(() {
 
-                  });
-                },
-                onSubmit: (val) {
-                  print(val);
+                      });
+                    },
+                    onSubmit: (val) {
+                      print(val);
 
-                  if((val ?? '').trim().isNotEmpty) {
-                    String searchText = val.toString();
+                      if((val ?? '').trim().isNotEmpty) {
+                        String searchText = val.toString();
 
-                    rootProvider.getGeneralProvider.saveSearch(
-                        SearchModel(searchText: searchText, createdAt: DateTime.now())
-                    );
-                  }
-                },
-                backgroundColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.4),
-                placeholderStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-                  fontSize: screenWidth * 0.035
+                        rootProvider.getGeneralProvider.saveSearch(
+                            SearchModel(searchText: searchText, createdAt: DateTime.now())
+                        );
+                      }
+                    },
+                    backgroundColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.4),
+                    placeholderStyle: TextStyle(
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                      fontSize: screenWidth * 0.035
+                    ),
+                    mainTextStyle: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontSize: screenWidth * 0.035
+                    ),
+                    borderRadius: 30,
+                    horizontalPadding: screenWidth * 0.11,
+                    textInputAction: TextInputAction.search,
+                    clearText: true,
+                  ),
                 ),
-                borderRadius: 30,
-                horizontalPadding: screenWidth * 0.012,
-                verticalPadding: screenHeight * 0.01,
-                textInputAction: TextInputAction.search,
-                clearText: true,
-                prefixIcon: Icon(Icons.search,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: screenWidth * 0.06,
-                ),
-              ),
+                SizedBox(width: screenWidth * 0.04),
+                InkWell(
+                  onTap: () => showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      showDragHandle: true,
+                      enableDrag: true,
+                      builder: (context) => SearchFilter(filter: searchFilter)
+                  ).then((val) async {
+                    if(val is Map<String, dynamic>) {
+                      setState(() {
+                        searchFilter = val;
+                      });
+
+                      FocusScope.of(Get.context as BuildContext).unfocus();
+
+
+
+                      if(searchController.text.trim().isNotEmpty) {
+                        setState(() {
+                          isSearching = true;
+                        });
+
+                        await loadSearch(searchController.text.trim());
+
+                      }
+                      setState(() {
+                        isSearching = false;
+                      });
+                    }
+                  }),
+                  borderRadius: BorderRadius.circular(8),
+                  splashColor: Colors.transparent,
+                  splashFactory: NoSplash.splashFactory,
+                  highlightColor: Colors.transparent,
+                  child: Container(
+                    width: screenWidth * 0.07,
+                    child: Icon(Icons.filter_list_outlined, size: screenSize * 0.02),
+                  ),
+                )
+              ],
             ),
-            SizedBox(width: screenWidth * 0.04),
-            InkWell(
-              onTap: () => showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  showDragHandle: true,
-                  enableDrag: true,
-                  builder: (context) => SearchFilter(filter: searchFilter)
-              ).then((val) async {
-                if(val is Map<String, dynamic>) {
-                  setState(() {
-                    searchFilter = val;
-                  });
-
-                  FocusScope.of(Get.context as BuildContext).unfocus();
-
-
-
-                  if(searchController.text.trim().isNotEmpty) {
-                    setState(() {
-                      isSearching = true;
-                    });
-
-                    await loadSearch(searchController.text.trim());
-
-                  }
-                  setState(() {
-                    isSearching = false;
-                  });
-                }
-              }),
-              borderRadius: BorderRadius.circular(8),
-              splashColor: Colors.transparent,
-              splashFactory: NoSplash.splashFactory,
-              highlightColor: Colors.transparent,
-              child: Container(
-                width: screenWidth * 0.07,
-                child: Icon(Icons.filter_list_outlined, size: screenSize * 0.02),
+            Positioned(
+              left: screenWidth * 0.04,
+              bottom: 0,
+              top: 0,
+              child: SvgPicture.asset('assets/svgs/home/search.svg',
+                width: screenWidth * 0.05,
               ),
             )
           ],
@@ -279,10 +292,14 @@ class _SearchState extends State<Search> {
                          final establishment = searchedData[index];
 
                          return InkWell(
-                           onTap: () => Get.to(() => ShowInfo(selectedEstablishment: establishment),
-                             duration: Duration(milliseconds: 300),
-                             transition: Transition.downToUp
-                           ),
+                           onTap: () {
+                             print(establishment.toJson());
+
+                             Get.to(() => ShowInfo(establishmentId: establishment.establishmentId),
+                                 duration: Duration(milliseconds: 300),
+                                 transition: Transition.downToUp
+                             );
+                           },
                            child: Container(
                              margin: EdgeInsets.only(top: screenHeight * 0.01, bottom: screenHeight * 0.01),
                              padding: EdgeInsets.symmetric(

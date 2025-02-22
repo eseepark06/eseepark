@@ -328,7 +328,6 @@ class EstablishmentController {
   })
   async {
     try {
-      // Check location permissions and get current position
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -343,12 +342,10 @@ class EstablishmentController {
         return [];
       }
 
-      // Get the user's current location
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
 
-      // Fetch nearby establishments
       final data = await supabase.rpc('search_nearby_establishments', params: {
         'user_lat': kDebugMode ? 14.65688762458187 : position.latitude,
         'user_lng': kDebugMode ? 121.10794013558173 : position.longitude,
@@ -362,6 +359,8 @@ class EstablishmentController {
         print('Supabase RPC returned null');
         return [];
       }
+
+      print(data);
 
 
       List<Establishment> establishments = (data as List).map((item) => Establishment.fromMap(item)).toList();

@@ -1,9 +1,13 @@
+import 'dart:io';
+
+import 'package:device_preview/device_preview.dart';
 import 'package:eseepark/providers/general/theme_provider.dart';
 import 'package:eseepark/providers/root_provider.dart';
 import 'package:eseepark/screens/general/get_started.dart';
 import 'package:eseepark/screens/others/hub.dart';
 import 'package:eseepark/screens/others/lobby/account_name.dart';
 import 'package:eseepark/screens/others/lobby/lobby.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -27,15 +31,31 @@ void main() async {
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxeGtyZWN1a3N5aXVhb3hjdXl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk0MjIxMDEsImV4cCI6MjA1NDk5ODEwMX0.wp_3D6Ha2OyqFZFwRzPD2fArWE4L6EYDpFBzYgjTsi8',
   );
 
-  runApp(
-    MultiProvider(
-        providers: [
-          ChangeNotifierProvider(create: (_) => ThemeProvider()),
-          ChangeNotifierProvider(create: (_) => RootProvider()),
-        ],
-        child: const Start(),
+  if(Platform.isAndroid) {
+    runApp(
+      DevicePreview(
+        enabled: !kReleaseMode,
+        builder: (context) =>  MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => ThemeProvider()),
+            ChangeNotifierProvider(create: (_) => RootProvider()),
+          ],
+          child: const Start(),
+        ), // Wrap your app
       )
-  );
+    );
+  } else {
+    runApp(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider(create: (_) => ThemeProvider()),
+            ChangeNotifierProvider(create: (_) => RootProvider()),
+          ],
+          child: const Start(),
+        )
+    );
+  }
+
 }
 
 final supabase = Supabase.instance.client;
@@ -65,6 +85,21 @@ class Start extends StatelessWidget {
       );
     }
 
+
+  if(Platform.isAndroid) {
+    return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
+      useInheritedMediaQuery: true,
+      locale: DevicePreview.locale(context),
+      builder: DevicePreview.appBuilder,
+      theme: themeProvider.currentTheme.copyWith(
+        textTheme: themeProvider.currentTheme.textTheme.apply(
+          fontFamily: 'Poppins',
+        ),
+      ),
+      home: rootProvider.getGeneralProvider.isGetStartedShown ? supabase.auth.currentUser != null ? (supabase.auth.currentUser?.userMetadata?['name'] != null ? const Hub() : const AccountName()) : const Lobby() : GetStarted(),
+    );
+  } else {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       theme: themeProvider.currentTheme.copyWith(
@@ -74,6 +109,9 @@ class Start extends StatelessWidget {
       ),
       home: rootProvider.getGeneralProvider.isGetStartedShown ? supabase.auth.currentUser != null ? (supabase.auth.currentUser?.userMetadata?['name'] != null ? const Hub() : const AccountName()) : const Lobby() : GetStarted(),
     );
+  }
+
+
   }
 }
 

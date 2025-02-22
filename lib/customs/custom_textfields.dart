@@ -150,6 +150,7 @@ class CustomTextField extends StatefulWidget {
   final Icon? suffixIcon;
   final Color? cursorColor;
   final bool? clearText;
+  final bool? isDense;
   final TextInputAction? textInputAction;
 
   const CustomTextField({
@@ -174,6 +175,7 @@ class CustomTextField extends StatefulWidget {
     this.suffixIcon,
     this.cursorColor,
     this.clearText,
+    this.isDense,
     this.textInputAction
   });
 
@@ -186,66 +188,74 @@ class _CustomTextFieldState extends State<CustomTextField> {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    return TextFormField(
-      controller: widget.controller,
-      onChanged: widget.onChanged,
-      onFieldSubmitted: widget.onSubmit,
-      style: widget.mainTextStyle,
-      cursorColor: widget.cursorColor,
-      textInputAction: widget.textInputAction,
-      decoration: InputDecoration(
-        hintText: widget.placeholder,
-        hintStyle: widget.placeholderStyle,
-        fillColor: widget.backgroundColor,
-        isDense: true,
-        filled: true,
-        prefix: widget.prefixWidget,
-        prefixIcon: widget.prefixIcon,
-        suffixIcon: widget.clearText == true && widget.controller != null ? widget.controller!.text.trim().isNotEmpty ?
-          GestureDetector(
+    return Stack(
+      children: [
+        TextFormField(
+          controller: widget.controller,
+          onChanged: widget.onChanged,
+          onFieldSubmitted: widget.onSubmit,
+          style: widget.mainTextStyle,
+          cursorColor: widget.cursorColor,
+          textInputAction: widget.textInputAction,
+          decoration: InputDecoration(
+            hintText: widget.placeholder,
+            hintStyle: widget.placeholderStyle,
+            fillColor: widget.backgroundColor,
+            isDense: widget.isDense ?? true,
+            filled: true,
+            prefix: widget.prefixWidget,
+            prefixIcon: widget.prefixIcon,
+            contentPadding: EdgeInsets.symmetric(
+                vertical: widget.verticalPadding ?? screenHeight * 0.01,
+                horizontal: widget.horizontalPadding ?? screenWidth * 0.02
+            ),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
+                borderSide: BorderSide(
+                    color: widget.disabledBorderColor ?? Colors.transparent,
+                    width: widget.borderWidth ?? 0.0
+                )
+            ),
+            disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
+                borderSide: BorderSide(
+                    color: widget.disabledBorderColor ?? Colors.transparent,
+                    width: widget.borderWidth ?? 0.0
+                )
+            ),
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
+                borderSide: BorderSide(
+                    color: widget.enabledBorderColor ?? Colors.transparent,
+                    width: widget.borderWidth ?? 0.0
+                )
+            ),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
+                borderSide: BorderSide(
+                    color: widget.focusedBorderColor ?? Colors.transparent,
+                    width: widget.borderWidth ?? 0.0
+                )
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: 0,
+          top: 0,
+          right: screenWidth * 0.04,
+          child: (widget.clearText == true && widget.controller != null && widget.controller!.text.trim().isNotEmpty)
+              ? GestureDetector(
             onTap: () {
               setState(() {
                 widget.controller?.clear();
               });
-
-              widget.call!(true);
+              widget.call?.call(true);
             },
-            child: Icon(Icons.close)
-          ) : null :
-          widget.suffixIcon,
-        contentPadding: EdgeInsets.symmetric(
-            vertical: widget.verticalPadding ?? screenHeight * 0.01,
-            horizontal: widget.horizontalPadding ?? screenWidth * 0.02
-        ),
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
-            borderSide: BorderSide(
-                color: widget.disabledBorderColor ?? Colors.transparent,
-                width: widget.borderWidth ?? 0.0
-            )
-        ),
-        disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
-            borderSide: BorderSide(
-                color: widget.disabledBorderColor ?? Colors.transparent,
-                width: widget.borderWidth ?? 0.0
-            )
-        ),
-        enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
-            borderSide: BorderSide(
-                color: widget.enabledBorderColor ?? Colors.transparent,
-                width: widget.borderWidth ?? 0.0
-            )
-        ),
-        focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
-            borderSide: BorderSide(
-                color: widget.focusedBorderColor ?? Colors.transparent,
-                width: widget.borderWidth ?? 0.0
-            )
-        ),
-      ),
+            child: Icon(Icons.close, size: screenWidth * 0.05),
+          )
+              : widget.suffixIcon ?? SizedBox.shrink(),
+        )
+      ],
     );
   }
 }

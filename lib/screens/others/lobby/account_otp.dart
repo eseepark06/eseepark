@@ -205,8 +205,8 @@ class _OTPAccountState extends State<OTPAccount> {
                                         text: resendText,
                                         style: TextStyle(
                                             color: codeSeconds == 0 ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: screenSize * 0.013,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: screenSize * 0.012,
                                             fontFamily: 'Poppins',
                                             decoration: TextDecoration.underline
                                         ),

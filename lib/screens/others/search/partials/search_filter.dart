@@ -19,6 +19,7 @@ class _SearchFilterState extends State<SearchFilter> {
   Map<String, dynamic> searchFilter = {};
 
   List<VehicleType> vehicleType = [];
+  List<ParkingRateType> parkingRate = [];
 
   @override
   void initState() {
@@ -29,6 +30,11 @@ class _SearchFilterState extends State<SearchFilter> {
     vehicleType = [
       VehicleType(0, 'Car', 'assets/svgs/search/car.svg'),
       VehicleType(1, 'Motorcycle', 'assets/svgs/search/motorcycle.svg'),
+    ];
+
+    parkingRate = [
+      ParkingRateType(0, 'Flat', 'flat_rate'),
+      ParkingRateType(1, 'Hourly', 'tiered_hourly'),
     ];
   }
 
@@ -65,6 +71,70 @@ class _SearchFilterState extends State<SearchFilter> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text('Parking Rate',
+                        style: TextStyle(
+                            fontSize: screenWidth * 0.03,
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)
+                        ),
+                      ),
+                      SizedBox(height: screenHeight * 0.01),
+                      Wrap(
+                        alignment: WrapAlignment.start,
+                        spacing: 12.0, // Add spacing between items
+                        runSpacing: 12.0, // Add spacing between rows
+                        children: parkingRate.asMap().entries.map((e) {
+                          final int index = e.key;
+                          final ParkingRateType type = e.value;
+                          
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                searchFilter['rate_types'] ??= []; // Ensure it's a list before using it
+                                if ((searchFilter['rate_types'] as List).contains(type.value)) {
+                                  (searchFilter['rate_types'] as List).remove(type.value);
+                                } else {
+                                  (searchFilter['rate_types'] as List).add(type.value);
+                                }
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(10),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: searchFilter['rate_types'] != null && (searchFilter['rate_types'] as List).contains(type.value) ? Theme.of(context).colorScheme.primary :  Theme.of(context).colorScheme.secondary,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: screenWidth * 0.035,
+                                  vertical: screenHeight * 0.008
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(type.name,
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.03,
+                                      fontWeight: searchFilter['rate_types'] != null && (searchFilter['rate_types'] as List).contains(type.value) ? FontWeight.bold : FontWeight.normal,
+                                      color: searchFilter['rate_types'] != null && (searchFilter['rate_types'] as List).contains(type.value) ? Colors.white : Theme.of(context).colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.01),
+                Container(
+                  margin: EdgeInsets.only(bottom: screenHeight * 0.01),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.05,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text('Vehicle Type',
                         style: TextStyle(
                             fontSize: screenWidth * 0.03,
@@ -79,7 +149,7 @@ class _SearchFilterState extends State<SearchFilter> {
                         children: vehicleType.asMap().entries.map((e) {
                           final int index = e.key;
                           final VehicleType type = e.value;
-                          
+
                           return InkWell(
                             onTap: () {
                               setState(() {
@@ -98,8 +168,8 @@ class _SearchFilterState extends State<SearchFilter> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               padding: EdgeInsets.symmetric(
-                                horizontal: screenWidth * 0.035,
-                                vertical: screenHeight * 0.008
+                                  horizontal: screenWidth * 0.035,
+                                  vertical: screenHeight * 0.008
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -256,3 +326,12 @@ class VehicleType {
 
   VehicleType(this.id, this.name, this.svgAsset);
 }
+
+class ParkingRateType {
+  int id;
+  String name;
+  String value;
+
+  ParkingRateType(this.id, this.name, this.value);
+}
+

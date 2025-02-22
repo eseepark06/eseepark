@@ -54,7 +54,7 @@ class _GetStartedState extends State<GetStarted> {
   Widget build(BuildContext context) {
     final rootProvider = Provider.of<RootProvider>(context);
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      backgroundColor: Colors.white,
       appBar: AppBar(backgroundColor: Colors.transparent, scrolledUnderElevation: 0),
       body: Container(
         child: Column(
@@ -84,7 +84,7 @@ class _GetStartedState extends State<GetStarted> {
                               child: Text(getStartedInfos[currentIndex].title,
                                 textAlign: TextAlign.start,
                                 style: TextStyle(
-                                    color: Colors.white,
+                                    color: Theme.of(context).colorScheme.primary,
                                     fontWeight: FontWeight.bold,
                                     fontSize: screenSize * 0.03
                                 ),
@@ -110,7 +110,7 @@ class _GetStartedState extends State<GetStarted> {
                   Expanded(
                     child: Container(
                       padding: EdgeInsets.symmetric(
-                        horizontal: screenWidth * .05
+                        horizontal: screenWidth * .1
                       ),
                       child: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 200),
@@ -119,9 +119,11 @@ class _GetStartedState extends State<GetStarted> {
                         },
                         child: Text(getStartedInfos[currentIndex].subtitle,
                           key: ValueKey<String>(getStartedInfos[currentIndex].subtitle),
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: screenSize * 0.015
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
+                            fontSize: screenSize * 0.013,
+                            fontWeight: FontWeight.w400
                           ),
                         ),
                       ),
