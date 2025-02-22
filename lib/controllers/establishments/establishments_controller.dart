@@ -1,6 +1,7 @@
 import 'package:eseepark/models/establishment_model.dart';
 import 'package:eseepark/models/parking_rate_model.dart';
 import 'package:eseepark/models/parking_section_model.dart';
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../main.dart';
 import '../../models/parking_slot_model.dart';
@@ -349,8 +350,8 @@ class EstablishmentController {
 
       // Fetch nearby establishments
       final data = await supabase.rpc('search_nearby_establishments', params: {
-        'user_lat': true ? 14.65688762458187 : position.latitude,
-        'user_lng': true ? 121.10794013558173 : position.longitude,
+        'user_lat': kDebugMode ? 14.65688762458187 : position.latitude,
+        'user_lng': kDebugMode ? 121.10794013558173 : position.longitude,
         'search_text': searchText,
         'max_results': maxResults,
         'max_radius_km': 100
