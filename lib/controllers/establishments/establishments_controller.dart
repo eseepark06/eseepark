@@ -293,7 +293,6 @@ class EstablishmentController {
       final List<Establishment> establishments = List<Map<String, dynamic>>.from(response).map((est) {
         return Establishment.fromMap({
           ...est,
-          'establishment_id': est['id'],
           'parking_rate': {
             'rate_type': est['rate_type']?.toString() ?? '',  // Ensures String or empty string
             'flat_rate': est['flat_rate'] != null ? (est['flat_rate'] as num).toDouble() : 0.0,

@@ -292,14 +292,10 @@ class _SearchState extends State<Search> {
                          final establishment = searchedData[index];
 
                          return InkWell(
-                           onTap: () {
-                             print(establishment.toJson());
-
-                             Get.to(() => ShowInfo(establishmentId: establishment.establishmentId),
-                                 duration: Duration(milliseconds: 300),
-                                 transition: Transition.downToUp
-                             );
-                           },
+                           onTap: () => Get.to(() => ShowInfo(establishmentId: establishment.establishmentId),
+                               duration: Duration(milliseconds: 300),
+                               transition: Transition.downToUp
+                           ),
                            child: Container(
                              margin: EdgeInsets.only(top: screenHeight * 0.01, bottom: screenHeight * 0.01),
                              padding: EdgeInsets.symmetric(
