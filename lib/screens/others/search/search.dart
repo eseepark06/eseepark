@@ -4,6 +4,7 @@ import 'package:eseepark/globals.dart';
 import 'package:eseepark/models/establishment_model.dart';
 import 'package:eseepark/models/search_model.dart';
 import 'package:eseepark/providers/root_provider.dart';
+import 'package:eseepark/screens/others/search/partials/search_all.dart';
 import 'package:eseepark/screens/others/search/partials/search_filter.dart';
 import 'package:eseepark/screens/others/search/partials/show_info.dart';
 import 'package:flutter/cupertino.dart';
@@ -26,6 +27,8 @@ class _SearchState extends State<Search> {
 
   List<Establishment> searchedData = [];
   bool isSearching = false;
+
+  bool listData = false;
 
   @override
   void dispose() {
@@ -111,7 +114,9 @@ class _SearchState extends State<Search> {
                     onChanged: (val) async {
                       setState(() {
                         searchedData.clear();
+                        listData = false;
                       });
+
                      if(val.trim().isNotEmpty) {
                        setState(() {
                          isSearching = true;
@@ -127,9 +132,13 @@ class _SearchState extends State<Search> {
                      }
                     },
                     call: (val) {
-                      setState(() {
+                      print(val);
 
-                      });
+                      if(val) {
+                        setState(() {
+                          listData = false;
+                        });
+                      }
                     },
                     onSubmit: (val) {
                       print(val);
@@ -140,6 +149,12 @@ class _SearchState extends State<Search> {
                         rootProvider.getGeneralProvider.saveSearch(
                             SearchModel(searchText: searchText, createdAt: DateTime.now())
                         );
+
+                        setState(() {
+                          listData = true;
+                        });
+
+                        print('searched: $searchText');
                       }
                     },
                     backgroundColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.4),
@@ -210,168 +225,176 @@ class _SearchState extends State<Search> {
           ],
         ),
       ),
-      body: Container(
+      body: !listData ? Container(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: screenHeight * 0.014),
             if(searchController.text.trim().isNotEmpty)
-             Container(
-               child: Column(
-                 crossAxisAlignment: CrossAxisAlignment.start,
-                 children: [
-                   Padding(
-                     padding: EdgeInsets.symmetric(
-                         horizontal: screenWidth * 0.05
-                     ),
-                     child: Text('Search for "${searchController.text.trim()}"',
-                       maxLines: 1,
-                       overflow: TextOverflow.ellipsis,
-                       style: TextStyle(
-                         fontWeight: FontWeight.w600,
-                       ),
-                     ),
-                   ),
-                   Container(
-                     alignment: Alignment.center,
-                     padding: EdgeInsets.only(top: screenHeight * 0.005),
-                     child: !isSearching ?
-                      ListView.builder(
-                       itemCount: searchedData.length + 1,
-                       shrinkWrap: true,
-                       physics: const NeverScrollableScrollPhysics(),
-                       itemBuilder: (context, index) {
-                         if(index == searchedData.length) {
-                           return InkWell(
-                             onTap: () {
-                               if (FocusManager.instance.primaryFocus != null) {
-                                 FocusManager.instance.primaryFocus!.unfocus();
-                               }
-                               
-                               print('Going');
-                             },
-                             child: Container(
-                               margin: EdgeInsets.only(top: screenHeight * 0.01, bottom: screenHeight * 0.01),
-                               padding: EdgeInsets.symmetric(
-                                   horizontal: screenWidth * 0.05
-                               ),
-                               child: Row(
-                                 children: [
-                                   Container(
-                                     height: screenWidth * 0.1,
-                                     width: screenWidth * 0.1,
-                                     decoration: BoxDecoration(
-                                       border: Border.all(
-                                         color: Theme.of(context).colorScheme.secondary,
-                                         width: 1,
-                                       ),
-                                       borderRadius: BorderRadius.circular(8),
-                                     ),
-                                     padding: EdgeInsets.all(screenWidth * 0.021),
-                                     child: SvgPicture.asset('assets/svgs/home/search.svg',
-                                       width: screenWidth * 0.04,
-                                     ),
-                                   ),
-                                   SizedBox(width: screenWidth * 0.04),
-                                   Expanded(
-                                     child: Container(
-                                       
-                                       child: Column(
-                                         crossAxisAlignment: CrossAxisAlignment.start,
-                                         children: [
-                                           Text(searchController.text.trim(), maxLines: 1, overflow: TextOverflow.ellipsis,),
-                                           Text('Search',
-                                             style: TextStyle(
-                                                 color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
-                                                 fontSize: screenWidth * 0.025
-                                             ),
-                                           )
-                                         ],
-                                       ),
-                                     ),
-                                   ),
-                                 ],
-                               ),
-                             ),
-                           );
-                         }
+              Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: screenWidth * 0.05
+                      ),
+                      child: Text('Search for "${searchController.text.trim()}"',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    Container(
+                        alignment: Alignment.center,
+                        padding: EdgeInsets.only(top: screenHeight * 0.005),
+                        child: !isSearching ?
+                        ListView.builder(
+                          itemCount: searchedData.length + 1,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemBuilder: (context, index) {
+                            if(index == searchedData.length) {
+                              return InkWell(
+                                onTap: () async {
+                                  if (FocusManager.instance.primaryFocus != null) {
+                                    FocusManager.instance.primaryFocus!.unfocus();
+                                  }
 
-                         final establishment = searchedData[index];
+                                  setState(() {
+                                    isSearching = true;
+                                  });
 
-                         return InkWell(
-                             onTap: () {
-                               if (FocusManager.instance.primaryFocus != null) {
-                                 FocusManager.instance.primaryFocus!.unfocus();
-                               }
+                                  await loadSearch(searchController.text.trim());
 
-                               Get.to(() => ShowInfo(
-                                   establishmentId: establishment.establishmentId,
-                                   distance: establishment.distance,
-                                 ),
-                                 duration: Duration(milliseconds: 300),
-                                 transition: Transition.downToUp,
-                               );
-                             },
-                             child: Container(
-                             margin: EdgeInsets.only(top: screenHeight * 0.01, bottom: screenHeight * 0.01),
-                             padding: EdgeInsets.symmetric(
-                                 horizontal: screenWidth * 0.05
-                             ),
-                             child: Row(
-                               children: [
-                                 Container(
-                                   height: screenWidth * 0.1,
-                                   width: screenWidth * 0.1,
-                                   decoration: BoxDecoration(
-                                     border: Border.all(
-                                       color: Theme.of(context).colorScheme.secondary,
-                                       width: 1,
-                                     ),
-                                     borderRadius: BorderRadius.circular(8),
-                                   ),
-                                   padding: EdgeInsets.all(screenWidth * 0.021),
-                                   child: SvgPicture.asset(
-                                     establishment.establishmentType == 'Mall'
-                                         ? 'assets/svgs/home/malls.svg'
-                                         : establishment.establishmentType == 'Outdoor'
-                                         ? 'assets/svgs/home/outdoor.svg'
-                                         : '',
-                                     width: screenWidth * 0.04,
-                                   ),
-                                 ),
-                                 SizedBox(width: screenWidth * 0.04),
-                                 Container(
-                                   child: Column(
-                                     crossAxisAlignment: CrossAxisAlignment.start,
-                                     children: [
-                                       RichText(
-                                         text: _highlightText(establishment.name, searchController.text.trim()),
-                                         maxLines: 1,
-                                         overflow: TextOverflow.ellipsis,
-                                       ),
-                                       Text(establishment.establishmentType,
-                                         style: TextStyle(
-                                             color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
-                                             fontSize: screenWidth * 0.025
-                                         ),
-                                       )
-                                     ],
-                                   ),
-                                 ),
-                               ],
-                             ),
-                           ),
-                         );
-                       },
-                     ) :
-                      Padding(
-                        padding: EdgeInsets.only(top: screenHeight * 0.03),
-                        child: CupertinoActivityIndicator(),
-                      )
-                   )
-                 ],
-               ),
-             ),
+                                  setState(() {
+                                    isSearching = false;
+                                  });
+                                },
+                                child: Container(
+                                  margin: EdgeInsets.only(top: screenHeight * 0.01, bottom: screenHeight * 0.01),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: screenWidth * 0.05
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        height: screenWidth * 0.1,
+                                        width: screenWidth * 0.1,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Theme.of(context).colorScheme.secondary,
+                                            width: 1,
+                                          ),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        padding: EdgeInsets.all(screenWidth * 0.021),
+                                        child: SvgPicture.asset('assets/svgs/home/search.svg',
+                                          width: screenWidth * 0.04,
+                                        ),
+                                      ),
+                                      SizedBox(width: screenWidth * 0.04),
+                                      Expanded(
+                                        child: Container(
+
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(searchController.text.trim(), maxLines: 1, overflow: TextOverflow.ellipsis,),
+                                              Text('Search',
+                                                style: TextStyle(
+                                                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                                                    fontSize: screenWidth * 0.025
+                                                ),
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }
+
+                            final establishment = searchedData[index];
+
+                            return InkWell(
+                              onTap: () {
+                                if (FocusManager.instance.primaryFocus != null) {
+                                  FocusManager.instance.primaryFocus!.unfocus();
+                                }
+
+                                Get.to(() => ShowInfo(
+                                  establishmentId: establishment.establishmentId,
+                                  distance: establishment.distance,
+                                ),
+                                  duration: Duration(milliseconds: 300),
+                                  transition: Transition.downToUp,
+                                );
+                              },
+                              child: Container(
+                                margin: EdgeInsets.only(top: screenHeight * 0.01, bottom: screenHeight * 0.01),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: screenWidth * 0.05
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      height: screenWidth * 0.1,
+                                      width: screenWidth * 0.1,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(
+                                          color: Theme.of(context).colorScheme.secondary,
+                                          width: 1,
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      padding: EdgeInsets.all(screenWidth * 0.021),
+                                      child: SvgPicture.asset(
+                                        establishment.establishmentType == 'Mall'
+                                            ? 'assets/svgs/home/malls.svg'
+                                            : establishment.establishmentType == 'Outdoor'
+                                            ? 'assets/svgs/home/outdoor.svg'
+                                            : '',
+                                        width: screenWidth * 0.04,
+                                      ),
+                                    ),
+                                    SizedBox(width: screenWidth * 0.04),
+                                    Container(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          RichText(
+                                            text: _highlightText(establishment.name, searchController.text.trim()),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          Text(establishment.establishmentType,
+                                            style: TextStyle(
+                                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                                                fontSize: screenWidth * 0.025
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ) :
+                        Padding(
+                          padding: EdgeInsets.only(top: screenHeight * 0.03),
+                          child: CupertinoActivityIndicator(),
+                        )
+                    )
+                  ],
+                ),
+              ),
             SizedBox(height: screenHeight * 0.01),
             Container(
               child: rootProvider.getGeneralProvider.searched.isNotEmpty && searchController.text.trim().isEmpty ? Column(
@@ -383,8 +406,8 @@ class _SearchState extends State<Search> {
                     ),
                     child: Text('Recent Searches',
                       style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: screenSize * 0.013
+                          fontWeight: FontWeight.w700,
+                          fontSize: screenSize * 0.013
                       ),
                     ),
                   ),
@@ -411,13 +434,14 @@ class _SearchState extends State<Search> {
                           );
 
                           setState(() {
+                            listData = true;
                             isSearching = false;
                           });
                         },
                         child: Container(
                           padding: EdgeInsets.symmetric(
-                            vertical: screenHeight * 0.013,
-                            horizontal: screenWidth * 0.05
+                              vertical: screenHeight * 0.013,
+                              horizontal: screenWidth * 0.05
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -430,13 +454,13 @@ class _SearchState extends State<Search> {
                                 ],
                               ),
                               InkWell(
-                                onTap: () {
-                                  rootProvider.getGeneralProvider.deleteSearch(search);
-                                  setState(() {
-                        
-                                  });
-                                },
-                                child: Icon(Icons.close)
+                                  onTap: () {
+                                    rootProvider.getGeneralProvider.deleteSearch(search);
+                                    setState(() {
+
+                                    });
+                                  },
+                                  child: Icon(Icons.close)
                               )
                             ],
                           ),
@@ -449,7 +473,7 @@ class _SearchState extends State<Search> {
             )
           ],
         ),
-      ),
+      ) : searchedData.isNotEmpty ? SearchResultWords(searchedWords: searchController.text.trim(), establishments: searchedData) : SizedBox.shrink(),
     );
   }
 }

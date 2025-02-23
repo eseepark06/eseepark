@@ -184,13 +184,38 @@ class CustomTextField extends StatefulWidget {
 }
 
 class _CustomTextFieldState extends State<CustomTextField> {
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+
+    // Add listener to detect focus changes
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus) {
+        print("TextField Focused");
+        // Run any function when the text field is clicked (focused)
+        widget.call?.call(true);
+      } else {
+        print("TextField Unfocused");
+        widget.call?.call(false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
     return Stack(
       children: [
         TextFormField(
+          focusNode: _focusNode, // Assign the FocusNode
           controller: widget.controller,
           onChanged: widget.onChanged,
           onFieldSubmitted: widget.onSubmit,
@@ -259,3 +284,4 @@ class _CustomTextFieldState extends State<CustomTextField> {
     );
   }
 }
+

@@ -360,74 +360,70 @@ class EstablishmentController {
 
       print(data);
 
+      List<Establishment> establishments = [];
 
-      List<Establishment> establishments = (data as List).map((item) => Establishment.fromMap(item)).toList();
+      for (var est in data) {
+        if (est == null) {
+          print('One of the establishments is null');
+          continue;
+        }
+        print('Processing establishment: ${est['establishment_id']}');
+
+        // Fetch parking rates
+        final ratesResponse = await supabase
+            .from('parking_rates')
+            .select('*')
+            .eq('establishment_id', est['establishment_id'])
+            .order('created_at', ascending: true);
+
+        ParkingRate? parkingRate;
+        if (ratesResponse == null) {
+          print('Rates response is null for establishment ID: ${est['establishment_id']}');
+        } else if (ratesResponse.isNotEmpty) {
+          parkingRate = ParkingRate.fromMap(ratesResponse.first);
+        }
+
+        // Fetch parking sections
+        final sectionsResponse = await supabase
+            .from('parking_sections')
+            .select('*')
+            .eq('establishment_id', est['establishment_id'])
+            .order('created_at', ascending: true);
+
+        int parkingSlotsCount = 0; // Default value
+        if (sectionsResponse == null) {
+          print('Sections response is null for establishment ID: ${est['establishment_id']}');
+        } else if (sectionsResponse.isNotEmpty) {
+          for (var sectionMap in sectionsResponse) {
+            if (sectionMap == null) continue;
+
+            // Query the count of parking slots for each section
+            final countResponse = await supabase
+                .from('parking_slots')
+                .select()
+                .eq('section_id', sectionMap['section_id'])
+                .eq('status', 'available')
+                .count();
+
+            if (countResponse == null) {
+              print('Parking slots count response is null for section ID: ${sectionMap['section_id']}');
+            } else {
+              parkingSlotsCount += countResponse.count ?? 0;
+            }
+          }
+        }
+
+        Map<String, dynamic> updatedMap = {
+          ...est,
+          'parking_rate': parkingRate?.toMap() ?? {},
+          'parking_slots_count': parkingSlotsCount,
+        }; // Remove the old key
+
+        // Ensure that we are not adding null values
+        establishments.add(Establishment.fromMap(updatedMap));
+      }
 
       return establishments;
-
-      // for (var est in data) {
-      //   if (est == null) {
-      //     print('One of the establishments is null');
-      //     continue;
-      //   }
-      //   print('Processing establishment: ${est['id']}');
-      //
-      //   // Fetch parking rates
-      //   final ratesResponse = await supabase
-      //       .from('parking_rates')
-      //       .select('*')
-      //       .eq('establishment_id', est['id'])
-      //       .order('created_at', ascending: true);
-      //
-      //   ParkingRate? parkingRate;
-      //   if (ratesResponse == null) {
-      //     print('Rates response is null for establishment ID: ${est['id']}');
-      //   } else if (ratesResponse.isNotEmpty) {
-      //     parkingRate = ParkingRate.fromMap(ratesResponse.first);
-      //   }
-      //
-      //   // Fetch parking sections
-      //   final sectionsResponse = await supabase
-      //       .from('parking_sections')
-      //       .select('*')
-      //       .eq('establishment_id', est['id'])
-      //       .order('created_at', ascending: true);
-      //
-      //   int parkingSlotsCount = 0; // Default value
-      //   if (sectionsResponse == null) {
-      //     print('Sections response is null for establishment ID: ${est['id']}');
-      //   } else if (sectionsResponse.isNotEmpty) {
-      //     for (var sectionMap in sectionsResponse) {
-      //       if (sectionMap == null) continue;
-      //
-      //       // Query the count of parking slots for each section
-      //       final countResponse = await supabase
-      //           .from('parking_slots')
-      //           .select()
-      //           .eq('section_id', sectionMap['section_id'])
-      //           .eq('status', 'available')
-      //           .count();
-      //
-      //       if (countResponse == null) {
-      //         print('Parking slots count response is null for section ID: ${sectionMap['section_id']}');
-      //       } else {
-      //         parkingSlotsCount += countResponse.count ?? 0;
-      //       }
-      //     }
-      //   }
-
-        // Map<String, dynamic> updatedMap = {
-        //   ...est,
-        //   'parking_rate': parkingRate?.toMap() ?? {},
-        //   'parking_slots_count': parkingSlotsCount,
-        //   'establishment_id': est['id'], // Add new key with old value
-        // }..remove('id'); // Remove the old key
-        //
-        // // Ensure that we are not adding null values
-        // establishments.add(Establishment.fromMap(updatedMap));
-      // }
-
-      // return establishments;
     } catch (e, stackTrace) {
       print('Error fetching nearby establishments: $e');
       print(stackTrace);
