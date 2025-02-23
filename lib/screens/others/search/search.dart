@@ -244,6 +244,10 @@ class _SearchState extends State<Search> {
                          if(index == searchedData.length) {
                            return InkWell(
                              onTap: () {
+                               if (FocusManager.instance.primaryFocus != null) {
+                                 FocusManager.instance.primaryFocus!.unfocus();
+                               }
+                               
                                print('Going');
                              },
                              child: Container(
@@ -269,18 +273,21 @@ class _SearchState extends State<Search> {
                                      ),
                                    ),
                                    SizedBox(width: screenWidth * 0.04),
-                                   Container(
-                                     child: Column(
-                                       crossAxisAlignment: CrossAxisAlignment.start,
-                                       children: [
-                                         Text(searchController.text.trim()),
-                                         Text('Search',
-                                           style: TextStyle(
-                                               color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
-                                               fontSize: screenWidth * 0.025
-                                           ),
-                                         )
-                                       ],
+                                   Expanded(
+                                     child: Container(
+                                       
+                                       child: Column(
+                                         crossAxisAlignment: CrossAxisAlignment.start,
+                                         children: [
+                                           Text(searchController.text.trim(), maxLines: 1, overflow: TextOverflow.ellipsis,),
+                                           Text('Search',
+                                             style: TextStyle(
+                                                 color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                                                 fontSize: screenWidth * 0.025
+                                             ),
+                                           )
+                                         ],
+                                       ),
                                      ),
                                    ),
                                  ],
@@ -292,11 +299,20 @@ class _SearchState extends State<Search> {
                          final establishment = searchedData[index];
 
                          return InkWell(
-                           onTap: () => Get.to(() => ShowInfo(establishmentId: establishment.establishmentId, distance: establishment.distance),
-                               duration: Duration(milliseconds: 300),
-                               transition: Transition.downToUp
-                           ),
-                           child: Container(
+                             onTap: () {
+                               if (FocusManager.instance.primaryFocus != null) {
+                                 FocusManager.instance.primaryFocus!.unfocus();
+                               }
+
+                               Get.to(() => ShowInfo(
+                                   establishmentId: establishment.establishmentId,
+                                   distance: establishment.distance,
+                                 ),
+                                 duration: Duration(milliseconds: 300),
+                                 transition: Transition.downToUp,
+                               );
+                             },
+                             child: Container(
                              margin: EdgeInsets.only(top: screenHeight * 0.01, bottom: screenHeight * 0.01),
                              padding: EdgeInsets.symmetric(
                                  horizontal: screenWidth * 0.05
