@@ -4,6 +4,8 @@ import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:eseepark/customs/custom_textfields.dart';
   import 'package:eseepark/screens/others/home/partials/establishments.dart';
   import 'package:eseepark/screens/others/home/partials/parking_sheet.dart';
+import 'package:eseepark/screens/others/home/partials/qr_code_scanner.dart';
+import 'package:eseepark/screens/others/search/partials/show_info.dart';
 import 'package:eseepark/screens/others/search/search.dart';
   import 'package:flutter/material.dart';
   import 'package:flutter/services.dart';
@@ -179,21 +181,36 @@ import 'package:get/get.dart';
                                 ),
                               ),
                               SizedBox(width: screenWidth * 0.04),
-                              Container(
-                                height: screenHeight * 0.058,
-                                width: screenHeight * 0.058,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                      color: const Color(0xFFD1D1D1),
-                                      width: 0.5
+                              InkWell(
+                                onTap: () => Get.to(() => const QrCodeScanner(),
+                                    duration: Duration(milliseconds: 300),
+                                    transition: Transition.topLevel
+                                )?.then((val) {
+                                  if(val != null) {
+                                    if (val['purpose'] == 'establishment-redirect') {
+                                      Get.to(() => ShowInfo(establishmentId: val['data']['id']),
+                                          duration: Duration(milliseconds: 300),
+                                          transition: Transition.cupertino
+                                      );
+                                    }
+                                  }
+                                }),
+                                child: Container(
+                                  height: screenHeight * 0.058,
+                                  width: screenHeight * 0.058,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                        color: const Color(0xFFD1D1D1),
+                                        width: 0.5
+                                    ),
                                   ),
-                                ),
-                                padding: EdgeInsets.all(screenSize * 0.007),
-                                child: SvgPicture.asset('assets/svgs/home/qr-code.svg',
-                                  colorFilter: ColorFilter.mode(Theme.of(context).colorScheme.onPrimary, BlendMode.srcIn),
-                                  width: screenSize * 0.025,
+                                  padding: EdgeInsets.all(screenSize * 0.007),
+                                  child: SvgPicture.asset('assets/svgs/home/qr-code.svg',
+                                    colorFilter: ColorFilter.mode(Theme.of(context).colorScheme.onPrimary, BlendMode.srcIn),
+                                    width: screenSize * 0.025,
+                                  ),
                                 ),
                               )
                             ],

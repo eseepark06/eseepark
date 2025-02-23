@@ -76,7 +76,10 @@ class _ShowInfoState extends State<ShowInfo> {
                         left: screenWidth * 0.05,
                         child: InkWell(
                           borderRadius: BorderRadius.circular(100),
-                          onTap: () => Get.back(),
+                          onTap: () {
+                            print('back');
+                            Navigator.pop(context);
+                          },
                           child: Container(
                               decoration: BoxDecoration(
                                   shape: BoxShape.circle,

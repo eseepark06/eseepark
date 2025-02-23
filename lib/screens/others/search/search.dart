@@ -182,6 +182,7 @@ class _SearchState extends State<Search> {
                       builder: (context) => SearchFilter(filter: searchFilter)
                   ).then((val) async {
                     if(val is Map<String, dynamic>) {
+                      print('Filtering');
                       setState(() {
                         searchFilter = val;
                       });
@@ -192,6 +193,7 @@ class _SearchState extends State<Search> {
 
                       if(searchController.text.trim().isNotEmpty) {
                         setState(() {
+                          listData = false;
                           isSearching = true;
                         });
 
@@ -200,6 +202,7 @@ class _SearchState extends State<Search> {
                       }
                       setState(() {
                         isSearching = false;
+                        listData = true;
                       });
                     }
                   }),
@@ -271,6 +274,7 @@ class _SearchState extends State<Search> {
 
                                   setState(() {
                                     isSearching = false;
+                                    listData = true;
                                   });
                                 },
                                 child: Container(

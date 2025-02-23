@@ -57,6 +57,7 @@ dependencies:
   url_launcher: ^6.3.1
   syncfusion_flutter_sliders: ^28.2.6
   device_preview: ^1.2.0
+  mobile_scanner: ^6.0.6
 
 flutter_native_splash:
   color: "#151515"

@@ -338,6 +338,7 @@ class _SearchResultWordsState extends State<SearchResultWords> {
 
           }).toList(),
           SizedBox(height: screenHeight * 0.02),
+          Divider(height: screenHeight * 0.06, thickness: 0.02,),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
