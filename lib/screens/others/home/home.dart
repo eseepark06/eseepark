@@ -258,54 +258,77 @@ import 'package:get/get.dart';
                                   child: Row(
                                     children: [
                                       Expanded(
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            border: Border.all(
-                                                color: const Color(0xFFD1D1D1),
-                                                width: 0.5
-                                            ),
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(30),
-                                          ),
-                                          height: screenHeight * 0.058,
-                                          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
-                                          child: Row(
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            children: [
-                                              SvgPicture.asset('assets/svgs/home/search.svg',
+                                        child: InkWell(
+                                          onTap: () {
+                                            Get.to(() => const Search(),
+                                                duration: Duration(milliseconds: 300),
+                                                transition: Transition.topLevel
+                                            );
+                                          },
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              border: Border.all(
+                                                  color: const Color(0xFFD1D1D1),
+                                                  width: 0.5
                                               ),
-                                              SizedBox(width: screenWidth * 0.02),
-                                              Flexible(
-                                                child: Text('Where do you want to park?',
-                                                  overflow: TextOverflow.ellipsis,
-                                                  style: TextStyle(
-                                                    fontSize: screenSize * 0.011,
-                                                    color: const Color(0xFF808080),
-
-                                                  ),
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.circular(30),
+                                            ),
+                                            height: screenHeight * 0.058,
+                                            padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04),
+                                            child: Row(
+                                              crossAxisAlignment: CrossAxisAlignment.center,
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              children: [
+                                                SvgPicture.asset('assets/svgs/home/search.svg',
                                                 ),
-                                              )
-                                            ],
+                                                SizedBox(width: screenWidth * 0.02),
+                                                Flexible(
+                                                  child: Text('Where do you want to park?',
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: TextStyle(
+                                                      fontSize: screenSize * 0.011,
+                                                      color: const Color(0xFF808080),
+
+                                                    ),
+                                                  ),
+                                                )
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       ),
                                       SizedBox(width: screenWidth * 0.04),
-                                      Container(
-                                        height: screenHeight * 0.058,
-                                        width: screenHeight * 0.058,
-                                        decoration: BoxDecoration(
-                                          color: Theme.of(context).colorScheme.primary,
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                              color: const Color(0xFFD1D1D1),
-                                              width: 0.5
+                                      InkWell(
+                                        onTap: () => Get.to(() => const QrCodeScanner(),
+                                            duration: Duration(milliseconds: 300),
+                                            transition: Transition.topLevel
+                                        )?.then((val) {
+                                          if(val != null) {
+                                            if (val['purpose'] == 'establishment-redirect') {
+                                              Get.to(() => ShowInfo(establishmentId: val['data']['id']),
+                                                  duration: Duration(milliseconds: 300),
+                                                  transition: Transition.cupertino
+                                              );
+                                            }
+                                          }
+                                        }),
+                                        child: Container(
+                                          height: screenHeight * 0.058,
+                                          width: screenHeight * 0.058,
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).colorScheme.primary,
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                                color: const Color(0xFFD1D1D1),
+                                                width: 0.5
+                                            ),
                                           ),
-                                        ),
-                                        padding: EdgeInsets.all(screenSize * 0.008),
-                                        child: SvgPicture.asset('assets/svgs/home/qr-code.svg',
-                                          colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                                          width: screenSize * 0.025,
+                                          padding: EdgeInsets.all(screenSize * 0.008),
+                                          child: SvgPicture.asset('assets/svgs/home/qr-code.svg',
+                                            colorFilter: ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                                            width: screenSize * 0.025,
+                                          ),
                                         ),
                                       )
                                     ],

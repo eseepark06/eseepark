@@ -274,6 +274,8 @@ class _SearchState extends State<Search> {
 
                                   await loadSearch(searchController.text.trim());
 
+                                  if (!mounted) return; // Check again before calling setState
+
                                   setState(() {
                                     isSearching = false;
                                     listData = true;
