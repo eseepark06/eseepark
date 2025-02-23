@@ -7,10 +7,8 @@ import '../../main.dart';
 import '../../models/parking_slot_model.dart';
 
 class EstablishmentController {
-  // Stream for all establishments
   final Stream<List<Establishment>> establishmentStream;
 
-  // Function to get a specific establishment
   Stream<Establishment?> getEstablishmentById(String establishmentId) {
     return supabase
         .from('establishments')
@@ -57,15 +55,29 @@ class EstablishmentController {
 
           parkingSections.add(section);
         }
-
-
       }
 
+      // Query the average rating for the establishment
+      final ratingResponse = await supabase
+          .from('feedback_reviews')
+          .select('rating')
+          .eq('establishment_id', est['establishment_id']);
+
+      double avgRating = 0.0;
+      if (ratingResponse.isNotEmpty) {
+        double total = ratingResponse
+            .map<double>((review) => (review['rating'] as num).toDouble())
+            .reduce((a, b) => a + b);
+
+        avgRating = total / ratingResponse.length;
+        avgRating = avgRating > 5 ? 5 : double.parse(avgRating.toStringAsFixed(1)); // Ensure max 5 and round to 1 decimal place
+      }
 
       return Establishment.fromMap({
         ...est,
         'parking_rate': parkingRate?.toMap() ?? {},
         'parking_sections': parkingSections.map((section) => section.toMap()).toList(),
+        'feedbacks_total_rating': avgRating
       });
     });
   }
@@ -110,30 +122,46 @@ class EstablishmentController {
               .select()
               .eq('section_id', sectionMap['section_id'])
               .eq('status', 'available')
-              .count(); // Use single() to get a single row response
+              .count();
 
           if (countResponse.count > 0) {
-            parkingSlotsCount = countResponse.count; // Get the count from the response
+            parkingSlotsCount = countResponse.count;
           }
         }
       }
+
+      // Query the average rating for the establishment
+      final ratingResponse = await supabase
+          .from('feedback_reviews')
+          .select('rating')
+          .eq('establishment_id', est['establishment_id']);
+
+      double avgRating = 0.0;
+      if (ratingResponse.isNotEmpty) {
+        double total = ratingResponse
+            .map<double>((review) => (review['rating'] as num).toDouble())
+            .reduce((a, b) => a + b);
+
+        avgRating = total / ratingResponse.length;
+        avgRating = avgRating > 5 ? 5 : double.parse(avgRating.toStringAsFixed(1)); // Ensure max 5 and round to 1 decimal place
+      }
+
       establishments.add(Establishment.fromMap({
         ...est,
         'parking_rate': parkingRate?.toMap() ?? {},
         'parking_slots_count': parkingSlotsCount,
+        'feedbacks_total_rating': avgRating,
       }));
     }
 
     return establishments;
   });
 
-
   Future<List<Establishment>> getNearbyEstablishmentsWithLocation({
     required double radiusKm,
     required int maxResults,
   }) async {
     try {
-      // Check location permissions and get current position
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
@@ -148,12 +176,10 @@ class EstablishmentController {
         return [];
       }
 
-      // Get the user's current location
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
 
-      // Fetch nearby establishments
       final data = await supabase.rpc('get_nearby_establishments', params: {
         'user_lat': true ? 14.65688762458187 : position.latitude,
         'user_lng': true ? 121.10794013558173 : position.longitude,
@@ -161,7 +187,6 @@ class EstablishmentController {
         'max_results': maxResults,
       });
 
-      // Debug print to inspect the raw data
       if (data == null) {
         print('Supabase RPC returned null');
         return [];
@@ -177,7 +202,6 @@ class EstablishmentController {
         }
         print('Processing establishment: ${est['id']}');
 
-        // Fetch parking rates
         final ratesResponse = await supabase
             .from('parking_rates')
             .select('*')
@@ -191,7 +215,6 @@ class EstablishmentController {
           parkingRate = ParkingRate.fromMap(ratesResponse.first);
         }
 
-        // Fetch parking sections
         final sectionsResponse = await supabase
             .from('parking_sections')
             .select('*')
@@ -205,7 +228,6 @@ class EstablishmentController {
           for (var sectionMap in sectionsResponse) {
             if (sectionMap == null) continue;
 
-            // Query the count of parking slots for each section
             final countResponse = await supabase
                 .from('parking_slots')
                 .select()
@@ -221,14 +243,41 @@ class EstablishmentController {
           }
         }
 
+        print('counting ratings for establishment: ${est['id']}');
+        // Query the average rating for the establishment
+        final ratingResponse = await supabase
+            .from('feedback_reviews')
+            .select('rating')
+            .eq('establishment_id', est['id']);
+
+        print('rating response: $ratingResponse');
+        double avgRating = 0.0;
+
+        // Ensure ratingResponse is not null and contains valid ratings
+        if (ratingResponse != null && ratingResponse.isNotEmpty) {
+          List<double> ratings = ratingResponse
+              .where((review) => review['rating'] != null) // Filter out null ratings
+              .map<double>((review) => (review['rating'] as num).toDouble())
+              .toList();
+
+          if (ratings.isNotEmpty) {
+            double total = ratings.reduce((a, b) => a + b);
+            avgRating = total / ratings.length;
+            avgRating = avgRating > 5 ? 5 : double.parse(avgRating.toStringAsFixed(1)); // Ensure max 5 and round to 1 decimal place
+          }
+        }
+
+        print('Avg Rating Computed: $avgRating');
+
+
         Map<String, dynamic> updatedMap = {
           ...est,
           'parking_rate': parkingRate?.toMap() ?? {},
           'parking_slots_count': parkingSlotsCount,
-          'establishment_id': est['id'], // Add new key with old value
-        }..remove('id'); // Remove the old key
+          'feedbacks_total_rating': avgRating,
+          'establishment_id': est['id'],
+        }..remove('id');
 
-        // Ensure that we are not adding null values
         establishments.add(Establishment.fromMap(updatedMap));
       }
 
@@ -247,7 +296,6 @@ class EstablishmentController {
     List<String> vehicleTypes = const ['Car', 'Motorcycle'],
     List<String>? rateTypes,
   }) async {
-    print('Filtering by: searchText: $searchText, maxResults: $maxResults, maxRadiusKm: $maxRadiusKm, vehicleTypes: $vehicleTypes, rateTypes: $rateTypes');
 
     try {
       LocationPermission permission = await Geolocator.checkPermission();
@@ -295,7 +343,6 @@ class EstablishmentController {
 
         int parkingSlotsCount = 0;
 
-        // Fetch parking sections
         final sectionsResponse = await supabase
             .from('parking_sections')
             .select('*')
@@ -306,7 +353,6 @@ class EstablishmentController {
           for (var sectionMap in sectionsResponse) {
             if (sectionMap == null) continue;
 
-            // Query the count of available parking slots for each section
             final countResponse = await supabase
                 .from('parking_slots')
                 .select()
@@ -320,6 +366,22 @@ class EstablishmentController {
           }
         }
 
+        // Query the average rating for the establishment
+        final ratingResponse = await supabase
+            .from('feedback_reviews')
+            .select('rating')
+            .eq('establishment_id', est['establishment_id']);
+
+        double avgRating = 0.0;
+        if (ratingResponse.isNotEmpty) {
+          double total = ratingResponse
+              .map<double>((review) => (review['rating'] as num).toDouble())
+              .reduce((a, b) => a + b);
+
+          avgRating = total / ratingResponse.length;
+          avgRating = avgRating > 5 ? 5 : double.parse(avgRating.toStringAsFixed(1)); // Ensure max 5 and round to 1 decimal place
+        }
+
         establishments.add(Establishment.fromMap({
           ...est,
           'parking_rate': {
@@ -330,7 +392,8 @@ class EstablishmentController {
             'extra_hourly_rate': est['extra_hourly_rate'] != null ? (est['extra_hourly_rate'] as num).toDouble() : 0.0,
             'max_daily_rate': est['max_daily_rate'] != null ? (est['max_daily_rate'] as num).toDouble() : 0.0,
           },
-          'parking_slots_count': parkingSlotsCount, // Added parkingSlotsCount here
+          'parking_slots_count': parkingSlotsCount,
+          'feedbacks_total_rating': avgRating,
         }));
       }
 
@@ -440,10 +503,27 @@ class EstablishmentController {
           }
         }
 
+        // Query the average rating for the establishment
+        final ratingResponse = await supabase
+            .from('feedback_reviews')
+            .select('rating')
+            .eq('establishment_id', est['establishment_id']);
+
+        double avgRating = 0.0;
+        if (ratingResponse.isNotEmpty) {
+          double total = ratingResponse
+              .map<double>((review) => (review['rating'] as num).toDouble())
+              .reduce((a, b) => a + b);
+
+          avgRating = total / ratingResponse.length;
+          avgRating = avgRating > 5 ? 5 : double.parse(avgRating.toStringAsFixed(1)); // Ensure max 5 and round to 1 decimal place
+        }
+
         Map<String, dynamic> updatedMap = {
           ...est,
           'parking_rate': parkingRate?.toMap() ?? {},
           'parking_slots_count': parkingSlotsCount,
+          'feedbacks_total_rating': avgRating
         }; // Remove the old key
 
         // Ensure that we are not adding null values

@@ -3,6 +3,7 @@ import 'package:eseepark/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../../models/establishment_model.dart';
@@ -26,6 +27,17 @@ class _ShowInfoState extends State<ShowInfo> {
   final _controller = EstablishmentController();
 
 
+
+  // Function to convert 24-hour time to 12-hour format with AM/PM
+  String formatTime(String time) {
+    try {
+      final DateTime dateTime = DateFormat("HH:mm").parse(time);
+      return DateFormat("h:mm a").format(dateTime); // Converts to AM/PM format
+    } catch (e) {
+      return time; // Return original if parsing fails
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -40,6 +52,7 @@ class _ShowInfoState extends State<ShowInfo> {
 
           final establishment = snapshot.data;
 
+          print('Operating hours: ${establishment?.operatingHours.length}');
 
           if (establishment == null) {
             return Center(child: CircularProgressIndicator());
@@ -77,7 +90,6 @@ class _ShowInfoState extends State<ShowInfo> {
                         child: InkWell(
                           borderRadius: BorderRadius.circular(100),
                           onTap: () {
-                            print('back');
                             Navigator.pop(context);
                           },
                           child: Container(
@@ -179,7 +191,7 @@ class _ShowInfoState extends State<ShowInfo> {
                                           size: screenWidth * 0.04,
                                         ),
                                         SizedBox(width: screenWidth * 0.01),
-                                        Text(4.5.toString(),
+                                        Text(establishment.feedbacksTotalRating.toString(),
                                           style: TextStyle(
                                               color: Theme.of(context).colorScheme.primary,
                                               fontWeight: FontWeight.w600
@@ -434,6 +446,65 @@ class _ShowInfoState extends State<ShowInfo> {
                               ),
                             ),
                           ],
+                        ),
+                        SizedBox(height: screenHeight * 0.02),
+                        Container(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Operating Hours',
+                                style: TextStyle(
+                                    fontSize: screenWidth * 0.03,
+                                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7)
+                                ),
+                              ),
+                              SizedBox(height: screenHeight * 0.005),
+                              Wrap(
+                                spacing: screenWidth * 0.017,
+                                runSpacing: screenHeight * 0.009,
+                                children: establishment.operatingHours.asMap().entries.map((entry) {
+                                  final operatingHour = entry.value;
+
+                                  return Container(
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).colorScheme.primary,
+                                      borderRadius: BorderRadius.circular(3),
+                                    ),
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: screenWidth * 0.02,
+                                        vertical: screenHeight * 0.005
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        Text(formatTime(operatingHour.open),
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: screenWidth * 0.02,
+                                              fontWeight: FontWeight.w400
+                                          ),
+                                        ),
+                                        Text(operatingHour.day,
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: screenWidth * 0.026,
+                                              letterSpacing: 0.5,
+                                              fontWeight: FontWeight.w600
+                                          ),
+                                        ),
+                                        Text(formatTime(operatingHour.close),
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: screenWidth * 0.02,
+                                              fontWeight: FontWeight.w400
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     )

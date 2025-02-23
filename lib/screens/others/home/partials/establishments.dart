@@ -9,6 +9,7 @@ class Establishments extends StatefulWidget {
   final Establishment establishment;
   final ParkingRate? parkingRate;
   final int? parkingSlotsCount;
+  final double? ratings;
   final List<ParkingMenu> parkingMenus;
   
   const Establishments({
@@ -16,6 +17,7 @@ class Establishments extends StatefulWidget {
     required this.establishment,
     this.parkingRate,
     this.parkingSlotsCount,
+    this.ratings,
     required this.parkingMenus
   });
 
@@ -126,37 +128,27 @@ class _EstablishmentsState extends State<Establishments> {
                         SizedBox(width: screenWidth * 0.02),
                         Row(
                           children: [
-                            Icon(
-                              Icons.star,
-                              size: screenSize * 0.014,
-                              color: Theme.of(context).colorScheme.primary,
+                            ...List.generate(
+                              (widget.ratings ?? 0.0).floor(),
+                                  (index) => Icon(
+                                Icons.star,
+                                size: screenSize * 0.014,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                             ),
-                            Icon(
-                              Icons.star,
-                              size: screenSize * 0.014,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            Icon(
-                              Icons.star,
-                              size: screenSize * 0.014,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            Icon(
-                              Icons.star,
-                              size: screenSize * 0.014,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            Icon(
-                              Icons.star_half_rounded,
-                              size: screenSize * 0.014,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
+                            if ((widget.ratings ?? 0.0) % 1 != 0) // If there's a fraction part, add a half star
+                              Icon(
+                                Icons.star_half_rounded,
+                                size: screenSize * 0.014,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                             SizedBox(width: screenWidth * 0.01),
                             Text(
-                              4.5.toString(),
+                              widget.ratings.toString(),
                               style: TextStyle(
-                                  fontSize: screenSize * 0.011,
-                                  fontWeight: FontWeight.w400),
+                                fontSize: screenSize * 0.011,
+                                fontWeight: FontWeight.w400,
+                              ),
                             ),
                           ],
                         ),

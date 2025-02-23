@@ -118,7 +118,7 @@ class _SearchResultWordsState extends State<SearchResultWords> {
                                           ),
                                         ),
                                         TextSpan(
-                                          text: 4.5.toString(),
+                                          text: establishment.feedbacksTotalRating.toString(),
                                           style: TextStyle(
                                               fontFamily: 'Poppins',
                                               fontSize: screenWidth * 0.03,

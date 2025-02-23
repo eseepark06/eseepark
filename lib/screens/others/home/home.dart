@@ -494,7 +494,7 @@ import 'package:get/get.dart';
                                                       return ParkingSheet(establishmentId: establishment.establishmentId);
                                                     });
                                               },
-                                              child: Establishments(establishment: establishment, parkingMenus: parkingMenus, parkingRate: parkingRate, parkingSlotsCount: parkingSlotsCount),
+                                              child: Establishments(establishment: establishment, parkingMenus: parkingMenus, parkingRate: parkingRate, parkingSlotsCount: parkingSlotsCount, ratings: establishment.feedbacksTotalRating),
                                             );
                                           }).toList(),
                                         ),

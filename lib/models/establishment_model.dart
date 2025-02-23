@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:eseepark/models/feedback_model.dart';
+import 'package:eseepark/models/operating_hours.dart';
 import 'package:eseepark/models/parking_rate_model.dart';
 import 'package:eseepark/models/parking_section_model.dart';
 
@@ -30,6 +32,9 @@ class Establishment {
 
   final List<String>? supportedVehicleTypes;
 
+  final List<OperatingHours> operatingHours;
+
+  // Distance in km
   final double? distance;
 
   // Parking rate as an object
@@ -37,7 +42,11 @@ class Establishment {
 
   final List<ParkingSection>? parkingSections;
 
+  final List<FeedbackModel>? feedbacks;
+
   final int? parkingSlotsCount;
+
+  final double? feedbacksTotalRating;
 
   Establishment({
     required this.establishmentId,
@@ -50,10 +59,13 @@ class Establishment {
     this.image,
     required this.coordinates,
     this.supportedVehicleTypes,
+    required this.operatingHours,
     this.distance,
     this.parkingRate,
     this.parkingSections,
-    this.parkingSlotsCount
+    this.feedbacks,
+    this.parkingSlotsCount,
+    this.feedbacksTotalRating
   });
 
   factory Establishment.fromMap(Map<String, dynamic> map) {
@@ -79,6 +91,13 @@ class Establishment {
           ? (map[EstablishmentFields.supportedVehicleTypes] as List).cast<String>()
           : null,
 
+      // Handle operating hours parsing
+      operatingHours: map['operating_hours'] is List
+          ? (map['operating_hours'] as List)
+          .map((x) => OperatingHours.fromMap(jsonDecode(x as String) as Map<String, dynamic>))
+          .toList()
+          : [],
+
       // Ensure distance is correctly parsed as double
       distance: (map['distance'] is int)
           ? (map['distance'] as int).toDouble()
@@ -94,7 +113,13 @@ class Establishment {
           ? (map['parking_sections'] as List).map((x) => ParkingSection.fromMap(x as Map<String, dynamic>)).toList()
           : null,
 
+      feedbacks: map['feedbacks'] is List
+          ? (map['feedbacks'] as List).map((x) => FeedbackModel.fromMap(x as Map<String, dynamic>)).toList()
+          : null,
+
       parkingSlotsCount: map['parking_slots_count'] as int? ?? 0,
+
+      feedbacksTotalRating: map['feedbacks_total_rating'] as double? ?? 0.0,
     );
   }
 
@@ -114,7 +139,9 @@ class Establishment {
       'distance': distance,
       'parking_rate': parkingRate?.toMap(), // Include parking rate
       'parking_sections': parkingSections?.map((x) => x.toMap()).toList(), // Include parking sections
-      'parking_slots_count': parkingSlotsCount
+      'feedbacks': feedbacks?.map((x) => x.toMap()).toList(),
+      'parking_slots_count': parkingSlotsCount,
+      'feedbacks_total_rating': feedbacksTotalRating
     };
   }
 
