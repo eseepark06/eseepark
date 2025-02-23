@@ -134,6 +134,8 @@ class _SearchState extends State<Search> {
                     call: (val) {
                       print(val);
 
+                      print('cleared');
+
                       if(val) {
                         setState(() {
                           listData = false;
@@ -477,7 +479,35 @@ class _SearchState extends State<Search> {
             )
           ],
         ),
-      ) : searchedData.isNotEmpty ? SearchResultWords(searchedWords: searchController.text.trim(), establishments: searchedData) : SizedBox.shrink(),
+      ) : searchedData.isNotEmpty ? SearchResultWords(searchedWords: searchController.text.trim(), establishments: searchedData) :
+      Container(
+        width: screenWidth,
+        padding: EdgeInsets.only(bottom: screenHeight * 0.1),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SvgPicture.asset('assets/svgs/search/empty-search.svg',
+              width: screenWidth * 0.2,
+              colorFilter: ColorFilter.mode(
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
+                BlendMode.srcIn
+              ),
+            ),
+            SizedBox(height: screenHeight * 0.01),
+            Text('Oops! Nothing here...', style: TextStyle(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
+              fontSize: screenWidth * 0.04,
+              fontStyle: FontStyle.italic,
+              fontWeight: FontWeight.bold
+            )),
+            Text('Try searching for something else!', textAlign: TextAlign.center, style: TextStyle(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
+              fontSize: screenWidth * 0.03,
+            )),
+          ],
+        ),
+      ),
     );
   }
 }

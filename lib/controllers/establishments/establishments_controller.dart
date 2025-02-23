@@ -246,8 +246,7 @@ class EstablishmentController {
     double maxRadiusKm = 5.0,
     List<String> vehicleTypes = const ['Car', 'Motorcycle'],
     List<String>? rateTypes,
-  })
-  async  {
+  }) async {
     print('Filtering by: searchText: $searchText, maxResults: $maxResults, maxRadiusKm: $maxRadiusKm, vehicleTypes: $vehicleTypes, rateTypes: $rateTypes');
 
     try {
@@ -289,24 +288,56 @@ class EstablishmentController {
 
       print(response);
 
-      final List<Establishment> establishments = List<Map<String, dynamic>>.from(response).map((est) {
-        return Establishment.fromMap({
+      List<Establishment> establishments = [];
+
+      for (var est in response) {
+        if (est == null) continue;
+
+        int parkingSlotsCount = 0;
+
+        // Fetch parking sections
+        final sectionsResponse = await supabase
+            .from('parking_sections')
+            .select('*')
+            .eq('establishment_id', est['establishment_id'])
+            .order('created_at', ascending: true);
+
+        if (sectionsResponse != null && sectionsResponse.isNotEmpty) {
+          for (var sectionMap in sectionsResponse) {
+            if (sectionMap == null) continue;
+
+            // Query the count of available parking slots for each section
+            final countResponse = await supabase
+                .from('parking_slots')
+                .select()
+                .eq('section_id', sectionMap['section_id'])
+                .eq('status', 'available')
+                .count();
+
+            if (countResponse != null) {
+              parkingSlotsCount += countResponse.count ?? 0;
+            }
+          }
+        }
+
+        establishments.add(Establishment.fromMap({
           ...est,
           'parking_rate': {
-            'rate_type': est['rate_type']?.toString() ?? '',  // Ensures String or empty string
+            'rate_type': est['rate_type']?.toString() ?? '',
             'flat_rate': est['flat_rate'] != null ? (est['flat_rate'] as num).toDouble() : 0.0,
             'base_rate': est['base_rate'] != null ? (est['base_rate'] as num).toDouble() : 0.0,
             'base_hours': est['base_hours'] as int?,
             'extra_hourly_rate': est['extra_hourly_rate'] != null ? (est['extra_hourly_rate'] as num).toDouble() : 0.0,
             'max_daily_rate': est['max_daily_rate'] != null ? (est['max_daily_rate'] as num).toDouble() : 0.0,
-          }
-        });
-      }).toList();
-
+          },
+          'parking_slots_count': parkingSlotsCount, // Added parkingSlotsCount here
+        }));
+      }
 
       for (var est in establishments) {
         print('Estab Id: ${est.establishmentId}');
         print('Parking Rate: ${est.parkingRate?.flatRate}');
+        print('Available Parking Slots: ${est.parkingSlotsCount}');
       }
 
       return establishments;
@@ -315,10 +346,6 @@ class EstablishmentController {
       return [];
     }
   }
-
-
-
-
 
   Future<List<Establishment>> searchEstablishments({
     required String searchText,
