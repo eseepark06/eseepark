@@ -460,8 +460,8 @@ class _ShowInfoState extends State<ShowInfo> {
                               ),
                               SizedBox(height: screenHeight * 0.005),
                               Wrap(
-                                spacing: screenWidth * 0.017,
-                                runSpacing: screenHeight * 0.009,
+                                spacing: screenWidth * 0.024,
+                                runSpacing: screenHeight * 0.011,
                                 children: establishment.operatingHours.asMap().entries.map((entry) {
                                   final operatingHour = entry.value;
 
@@ -509,6 +509,55 @@ class _ShowInfoState extends State<ShowInfo> {
                       ],
                     )
                   ),
+                  Container(
+                    width: screenWidth,
+                    decoration: BoxDecoration(
+                        color: Colors.white
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04, vertical: screenHeight * 0.015),
+                    margin: EdgeInsets.only(bottom: screenHeight * 0.015),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Feedback and Ratings',
+                          style: TextStyle(
+                              fontSize: screenWidth * 0.03,
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7)
+                          ),
+                        ),
+                        ListView.builder(
+                          itemCount: establishment.feedbacks?.length,
+                          shrinkWrap: true,
+                          physics: NeverScrollableScrollPhysics(),
+                          itemBuilder: (context, index) {
+                            final feedback = establishment.feedbacks?[index];
+                            return Padding(
+                              padding: EdgeInsets.only(top: screenHeight * 0.01),
+                              child: Container(
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.account_circle_rounded,
+                                      color: Theme.of(context).colorScheme.primary,
+                                      size: screenWidth * 0.06
+                                    ),
+                                    SizedBox(width: screenWidth * 0.02),
+                                    Container(
+                                      child: Column(
+                                        children: [
+
+                                        ],
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.2),
                 ],
               ),
               Positioned(

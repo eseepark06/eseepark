@@ -2,6 +2,7 @@
 
 import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:eseepark/customs/custom_textfields.dart';
+import 'package:eseepark/models/parking_section_model.dart';
   import 'package:eseepark/screens/others/home/partials/establishments.dart';
   import 'package:eseepark/screens/others/home/partials/parking_sheet.dart';
 import 'package:eseepark/screens/others/home/partials/qr_code_scanner.dart';
@@ -487,12 +488,7 @@ import 'package:get/get.dart';
 
                                             return InkWell(
                                               onTap: () {
-                                                showModalBottomSheet(
-                                                    context: context,
-                                                    isScrollControlled: true,
-                                                    builder: (context) {
-                                                      return ParkingSheet(establishmentId: establishment.establishmentId);
-                                                    });
+                                                Get.to(() => ShowInfo(establishmentId: establishment.establishmentId, distance: establishment.distance));
                                               },
                                               child: Establishments(establishment: establishment, parkingMenus: parkingMenus, parkingRate: parkingRate, parkingSlotsCount: parkingSlotsCount, ratings: establishment.feedbacksTotalRating),
                                             );
