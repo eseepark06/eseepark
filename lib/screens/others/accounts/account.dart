@@ -53,13 +53,17 @@ class _AccountState extends State<Account> with AutomaticKeepAliveClientMixin<Ac
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
+        backgroundColor: Colors.white,
         centerTitle: true,
-        title: Text('My Account',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600
-          ),
+        title: Row(
+          children: [
+            Text('My Account',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w600
+              ),
+            ),
+          ],
         ),
       ),
       body: Container(
