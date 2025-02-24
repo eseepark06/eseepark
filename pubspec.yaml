@@ -58,6 +58,9 @@ dependencies:
   syncfusion_flutter_sliders: ^28.2.6
   device_preview: ^1.2.0
   mobile_scanner: ^6.0.6
+  flutter_map: ^8.0.0
+  location: ^8.0.0
+  latlong2: ^0.9.1
 
 flutter_native_splash:
   color: "#151515"

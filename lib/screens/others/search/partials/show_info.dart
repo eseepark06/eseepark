@@ -1,10 +1,14 @@
 import 'package:eseepark/controllers/establishments/establishments_controller.dart';
 import 'package:eseepark/globals.dart';
+import 'package:eseepark/models/profile_model.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../models/establishment_model.dart';
 import '../../home/partials/parking_sheet.dart';
@@ -25,7 +29,35 @@ class ShowInfo extends StatefulWidget {
 
 class _ShowInfoState extends State<ShowInfo> {
   final _controller = EstablishmentController();
+  final ScrollController _scrollController = ScrollController();
+  late final MapController _mapController;
 
+  bool isImageNotShown = false;
+
+  String type = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+  @override
+  void initState() {
+    super.initState();
+    _mapController = MapController();
+    _scrollController.addListener(_scrollListener);
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.pixels > screenHeight * 0.24) {
+      if(!isImageNotShown) {
+        setState(() {
+          isImageNotShown = true;
+        });
+      }
+    } else {
+      if(isImageNotShown) {
+        setState(() {
+          isImageNotShown = false;
+        });
+      }
+    }
+  }
 
 
   // Function to convert 24-hour time to 12-hour format with AM/PM
@@ -53,61 +85,46 @@ class _ShowInfoState extends State<ShowInfo> {
           final establishment = snapshot.data;
 
           print('Operating hours: ${establishment?.operatingHours.length}');
+          print('Feedbacks: ${establishment?.feedbacks?.length}');
 
           if (establishment == null) {
             return Center(child: CircularProgressIndicator());
           }
 
+          // Delay the move call until after the frame is built
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _mapController.move(
+                LatLng(establishment.coordinates['lat'], establishment.coordinates['lng']),
+                16,
+              );
+            }
+          });
+
           return Stack(
             children: [
               ListView(
                 padding: EdgeInsets.zero,
+                controller: _scrollController,
                 children: [
-                  Stack(
-                    children: [
-                      Container(
-                        height: screenHeight * 0.33,
-                        width: screenWidth,
-                        decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
-                            image: establishment.image != null ? DecorationImage(
-                                image: NetworkImage(establishment.image.toString()),
-                                fit: BoxFit.cover
-                            ) :
-                            DecorationImage(
-                                image: AssetImage('assets/images/general/eseepark-transparent-logo-768.png'),
-                                scale: 6,
-                                alignment: Alignment.center
-                            ),
-                            borderRadius: BorderRadius.vertical(
-                                bottom: Radius.circular(10)
-                            )
+                  Container(
+                    height: screenHeight * 0.33,
+                    width: screenWidth,
+                    decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                        image: establishment.image != null ? DecorationImage(
+                            image: NetworkImage(establishment.image.toString()),
+                            fit: BoxFit.cover
+                        ) :
+                        DecorationImage(
+                            image: AssetImage('assets/images/general/eseepark-transparent-logo-768.png'),
+                            scale: 6,
+                            alignment: Alignment.center
                         ),
-                      ),
-                      Positioned(
-                        top: screenHeight * 0.058,
-                        left: screenWidth * 0.05,
-                        child: InkWell(
-                          borderRadius: BorderRadius.circular(100),
-                          onTap: () {
-                            Navigator.pop(context);
-                          },
-                          child: Container(
-                              decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                      color: Colors.white,
-                                      width: 2
-                                  )
-                              ),
-                              padding: EdgeInsets.all(screenWidth * 0.01),
-                              child: Icon(Icons.arrow_back_outlined,
-                                color: Colors.white,
-                              )
-                          ),
-                        ),
-                      )
-                    ],
+                        borderRadius: BorderRadius.vertical(
+                            bottom: Radius.circular(10)
+                        )
+                    ),
                   ),
                   Container(
                     width: screenWidth,
@@ -270,7 +287,7 @@ class _ShowInfoState extends State<ShowInfo> {
                               TextSpan(
                                 text: (establishment.parkingRate?.rateType ?? '') == 'tiered_hourly' ? 'Hourly Rate' : 'Flat Rate',
                                 style: TextStyle(
-                                  fontSize: screenWidth * 0.03,
+                                  fontSize: screenWidth * 0.033,
                                   fontWeight: FontWeight.w600,
                                 )
                               ),
@@ -312,7 +329,7 @@ class _ShowInfoState extends State<ShowInfo> {
                                       )
                                     ],
                                     style: TextStyle(
-                                        fontSize: screenWidth * 0.03,
+                                        fontSize: screenWidth * 0.033,
                                         fontWeight: FontWeight.w400,
                                         fontFamily: 'HelveticaNeue'
                                     )
@@ -323,14 +340,15 @@ class _ShowInfoState extends State<ShowInfo> {
                                     TextSpan(
                                       text: '₱${establishment.parkingRate?.flatRate}',
                                       style: TextStyle(
-                                        fontFamily: 'HelveticaNeue'
+                                        fontFamily: 'HelveticaNeue',
+                                        fontSize: screenWidth * 0.033,
                                       )
                                     ),
                                     TextSpan(
                                         text: ' Fixed Rate',
                                         style: TextStyle(
                                           fontFamily: 'Poppins',
-                                          fontSize: screenWidth * 0.028,
+                                          fontSize: screenWidth * 0.033,
                                         )
                                     )
                                   ],
@@ -356,12 +374,12 @@ class _ShowInfoState extends State<ShowInfo> {
                                 borderRadius: BorderRadius.circular(3)
                               ),
                               padding: EdgeInsets.all(screenWidth * 0.005),
-                              child: Icon(Icons.local_parking, color: Colors.white, size: screenWidth * 0.023),
+                              child: Icon(Icons.local_parking, color: Colors.white, size: screenWidth * 0.03),
                             ),
                             SizedBox(width: screenWidth * 0.02),
                             Text('${establishment.parkingSections?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.where((slot) => slot.slotStatus == 'available').length ?? 0)) ?? 0} out of ${establishment.parkingSections?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.length ?? 0)) ?? 0} slots are available',
                               style: TextStyle(
-                                fontSize: screenWidth * 0.028,
+                                fontSize: screenWidth * 0.033,
                                 height: 1.1
                               ),
                             )
@@ -397,12 +415,12 @@ class _ShowInfoState extends State<ShowInfo> {
                                             borderRadius: BorderRadius.circular(3)
                                         ),
                                         padding: EdgeInsets.all(screenWidth * 0.005),
-                                        child: Icon(Icons.phone, color: Colors.white, size: screenWidth * 0.023),
+                                        child: Icon(Icons.phone, color: Colors.white, size: screenWidth * 0.03),
                                       ),
                                       SizedBox(width: screenWidth * 0.02),
                                       Text(establishment.contactNumber ?? '',
                                         style: TextStyle(
-                                            fontSize: screenWidth * 0.028,
+                                            fontSize: screenWidth * 0.033,
                                             height: 1.1
                                         ),
                                       )
@@ -431,12 +449,12 @@ class _ShowInfoState extends State<ShowInfo> {
                                             borderRadius: BorderRadius.circular(3)
                                         ),
                                         padding: EdgeInsets.all(screenWidth * 0.005),
-                                        child: Icon(Icons.bloodtype, color: Colors.white, size: screenWidth * 0.023),
+                                        child: Icon(Icons.bloodtype, color: Colors.white, size: screenWidth * 0.03),
                                       ),
                                       SizedBox(width: screenWidth * 0.02),
                                       Text(establishment.establishmentType ?? '',
                                         style: TextStyle(
-                                            fontSize: screenWidth * 0.028,
+                                            fontSize: screenWidth * 0.033,
                                             height: 1.1
                                         ),
                                       )
@@ -479,22 +497,22 @@ class _ShowInfoState extends State<ShowInfo> {
                                         Text(formatTime(operatingHour.open),
                                           style: TextStyle(
                                               color: Colors.white,
-                                              fontSize: screenWidth * 0.02,
+                                              fontSize: screenWidth * 0.025,
                                               fontWeight: FontWeight.w400
                                           ),
                                         ),
                                         Text(operatingHour.day,
                                           style: TextStyle(
                                               color: Colors.white,
-                                              fontSize: screenWidth * 0.026,
-                                              letterSpacing: 0.5,
+                                              fontSize: screenWidth * 0.034,
+                                              letterSpacing: 1,
                                               fontWeight: FontWeight.w600
                                           ),
                                         ),
                                         Text(formatTime(operatingHour.close),
                                           style: TextStyle(
                                               color: Colors.white,
-                                              fontSize: screenWidth * 0.02,
+                                              fontSize: screenWidth * 0.025,
                                               fontWeight: FontWeight.w400
                                           ),
                                         ),
@@ -525,39 +543,259 @@ class _ShowInfoState extends State<ShowInfo> {
                               color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7)
                           ),
                         ),
-                        ListView.builder(
-                          itemCount: establishment.feedbacks?.length,
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          itemBuilder: (context, index) {
-                            final feedback = establishment.feedbacks?[index];
-                            return Padding(
-                              padding: EdgeInsets.only(top: screenHeight * 0.01),
-                              child: Container(
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.account_circle_rounded,
-                                      color: Theme.of(context).colorScheme.primary,
-                                      size: screenWidth * 0.06
-                                    ),
-                                    SizedBox(width: screenWidth * 0.02),
-                                    Container(
-                                      child: Column(
-                                        children: [
+                        FutureBuilder<ProfileModel>(
+                            future: _controller.getProfile(establishment.feedbacks!.first.userId),
+                            builder: (context, snapshot) {
 
-                                        ],
-                                      ),
-                                    )
-                                  ],
+                              if(snapshot.hasError) {
+                                return Text('Error: ${snapshot.error}');
+                              }
+
+                              final ProfileModel? profile = snapshot.data;
+
+                              return Container(
+                                child: (establishment.feedbacks ?? []).isNotEmpty ?
+                                Padding(
+                                  padding: EdgeInsets.only(top: screenHeight * 0.01),
+                                  child: Container(
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Icon(
+                                          Icons.account_circle_rounded,
+                                          color: Theme.of(context).colorScheme.primary,
+                                          size: screenWidth * 0.12,
+                                        ),
+                                        SizedBox(width: screenWidth * 0.02),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start, // Align text properly
+                                          children: [
+                                            Container(
+                                              width: screenWidth * 0.76,
+                                              child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(profile?.name.toString() ?? '',
+                                                        style: TextStyle(
+                                                            fontSize: screenWidth * 0.037,
+                                                            fontWeight: FontWeight.bold
+                                                        ),
+                                                      ),
+                                                      Row(
+                                                        children: [
+                                                          ...List.generate(
+                                                            (establishment.feedbacks!.first.rating ?? 0.0).floor(),
+                                                                (index) => Icon(
+                                                              Icons.star,
+                                                              size: screenSize * 0.014,
+                                                              color: Theme.of(context).colorScheme.primary,
+                                                            ),
+                                                          ),
+                                                          if ((establishment.feedbacks!.first.rating ?? 0.0) % 1 != 0) // ✅ Fix parentheses placement
+                                                            Icon(
+                                                              Icons.star_half_rounded,
+                                                              size: screenSize * 0.014,
+                                                              color: Theme.of(context).colorScheme.primary,
+                                                            ),
+                                                          SizedBox(width: screenWidth * 0.01),
+                                                          Text(
+                                                            establishment.feedbacks!.first.rating.toString(),
+                                                            style: TextStyle(
+                                                                fontSize: screenWidth * 0.033,
+                                                                fontWeight: FontWeight.bold
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  Text(DateFormat('MMM d, y').format(establishment.feedbacks!.first.createdAt),
+                                                    style: TextStyle(
+                                                        fontSize: screenWidth * 0.03
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            SizedBox(height: screenHeight * 0.01),
+                                            Container(
+                                              width: screenWidth * 0.76,
+                                              child: Text(establishment.feedbacks!.first.comment ?? '',
+                                                style: TextStyle(
+                                                    fontSize: screenWidth * 0.033
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ) : SizedBox.shrink(),
+                              );
+                            }
+                        ),
+                        SizedBox(height: screenHeight * 0.01),
+                        InkWell(
+                          onTap: () {
+                            print('Feedbacks');
+                          },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.only(top: screenHeight * 0.003),
+                                child: Icon(
+                                  Icons.feedback,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  size: screenWidth * 0.045,
                                 ),
                               ),
-                            );
-                          },
+                              SizedBox(width: screenWidth * 0.02),
+                              Text('See All Feedbacks (${establishment.feedbacks?.length ?? 0})',
+                                style: TextStyle(
+                                    fontSize: screenWidth * 0.034,
+                                    color: Theme.of(context).colorScheme.primary,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1
+                                ),
+                              )
+                            ],
+                          ),
                         )
                       ],
                     ),
                   ),
-                  SizedBox(height: screenHeight * 0.2),
+                  Container(
+                    width: screenWidth,
+                    decoration: BoxDecoration(
+                        color: Colors.white
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04, vertical: screenHeight * 0.015),
+                    margin: EdgeInsets.only(bottom: screenHeight * 0.015),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Where to Find Us',
+                          style: TextStyle(
+                              fontSize: screenWidth * 0.03,
+                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7)
+                          ),
+                        ),
+                        SizedBox(height: screenHeight * 0.01),
+                        Stack(
+                          children: [
+                            Container(
+                              height: screenHeight * 0.3,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: FlutterMap(
+                                  mapController: _mapController,
+                                  options: MapOptions(
+                                    interactionOptions: InteractionOptions(
+                                      debugMultiFingerGestureWinner: false,
+                                      flags: InteractiveFlag.none
+                                    ),
+                                    keepAlive: true,
+                                    onTap: (TapPosition position, LatLng latLng) async {
+                                      print('Latitude: ${establishment.coordinates['lat']}');
+                                      print('Longitude: ${establishment.coordinates['lng']}');
+
+                                      final Uri url = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=${establishment.coordinates['lat']},${establishment.coordinates['lng']}');
+
+                                      if (!await launchUrl(url)) {
+                                        throw 'Could not launch $url';
+                                      }
+                                    },
+                                    onMapEvent: (MapEvent event) {
+                                      print('Event: $event');
+                                    },
+                                    onMapReady: () {
+                                      Future.delayed(Duration(milliseconds: 500), () {
+                                        print('Type: $type');
+                                        setState(() {
+                                          type = 'https://api.maptiler.com/maps/basic-v2/{z}/{x}/{y}.png?key=Qipsk8ow5i3XD55aV9F0';
+                                        });
+                                      });
+                                    }
+                                  ),
+                                  children: [
+                                    TileLayer(
+                                      urlTemplate: type,
+                                      userAgentPackageName: 'com.eseepark.eseepark',
+                                    ),
+                                    MarkerLayer(
+                                      markers: [
+                                        Marker(
+                                          width: 100,
+                                          height: 100,
+                                          point: LatLng(establishment.coordinates['lat'], establishment.coordinates['lng']), // Location for the marker
+                                          child: Icon(Icons.location_on, color: Colors.red.shade600),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ),
+                            Positioned(
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              child: InkWell(
+                                onTap: ()  async {
+                                  print('Latitude: ${establishment.coordinates['lat']}');
+                                  print('Longitude: ${establishment.coordinates['lng']}');
+
+                                  final Uri url = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=${establishment.coordinates['lat']},${establishment.coordinates['lng']}');
+
+                                  if (!await launchUrl(url)) {
+                                   throw 'Could not launch $url';
+                                  }
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Colors.transparent,
+                                        Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(10)),
+                                  ),
+                                  padding: EdgeInsets.only(
+                                      left: screenWidth * 0.05,
+                                      right: screenWidth * 0.05,
+                                      top: screenHeight * 0.05,
+                                      bottom: screenHeight * 0.04,
+                                  ),
+                                  child: Text('Click on the map to navigate to the establishment location',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: screenWidth * 0.035,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.12),
                 ],
               ),
               Positioned(
@@ -589,6 +827,39 @@ class _ShowInfoState extends State<ShowInfo> {
                     )
                   ),
                 ),
+              ),
+              Positioned(
+                top: screenHeight * 0.058,
+                left: screenWidth * 0.05,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(100),
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: !isImageNotShown ? Colors.white : Theme.of(context).colorScheme.primary,
+                      border: Border.all(
+                        color: !isImageNotShown ? Colors.white : Theme.of(context).colorScheme.primary,
+                        width: 2,
+                      ),
+                    ),
+                    padding: EdgeInsets.all(screenWidth * 0.01),
+                    child: AnimatedSwitcher(
+                      duration: Duration(milliseconds: 300),
+                      transitionBuilder: (Widget child, Animation<double> animation) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
+                      child: Icon(
+                        Icons.arrow_back_outlined,
+                        key: ValueKey<bool>(isImageNotShown), // Ensures animation triggers on state change
+                        color: !isImageNotShown ? Theme.of(context).colorScheme.primary : Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+
               )
             ],
           );

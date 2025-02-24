@@ -1,9 +1,11 @@
 import 'package:eseepark/models/establishment_model.dart';
 import 'package:eseepark/models/parking_rate_model.dart';
 import 'package:eseepark/models/parking_section_model.dart';
+import 'package:eseepark/models/profile_model.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import '../../main.dart';
+import '../../models/feedback_model.dart';
 import '../../models/parking_slot_model.dart';
 
 class EstablishmentController {
@@ -60,7 +62,7 @@ class EstablishmentController {
       // Query the average rating for the establishment
       final ratingResponse = await supabase
           .from('feedback_reviews')
-          .select('rating')
+          .select('*')
           .eq('establishment_id', est['establishment_id']);
 
       double avgRating = 0.0;
@@ -77,10 +79,22 @@ class EstablishmentController {
         ...est,
         'parking_rate': parkingRate?.toMap() ?? {},
         'parking_sections': parkingSections.map((section) => section.toMap()).toList(),
+        'feedbacks': ratingResponse.map((feedback) => FeedbackModel.fromMap(feedback).toMap()).toList(),
         'feedbacks_total_rating': avgRating
       });
     });
   }
+
+  Future<ProfileModel> getProfile(String userId) async {
+    final profileResponse = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .limit(1);
+
+    return ProfileModel.fromMap(profileResponse.first);
+  }
+
 
   EstablishmentController()
       : establishmentStream = supabase

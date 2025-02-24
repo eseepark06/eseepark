@@ -28,7 +28,7 @@ class FeedbackModel {
     return FeedbackModel(
       feedbackId: map[FeedbackFields.feedbackId] as String? ?? '',
       userId: map[FeedbackFields.userId] as String? ?? '',
-      rating: map[FeedbackFields.rating] as double? ?? 0.0,
+      rating: (map[FeedbackFields.rating] as num?)?.toDouble() ?? 0.0,
       comment: map[FeedbackFields.comment] as String?,
       createdAt: map[FeedbackFields.createdAt] != null
           ? DateTime.tryParse(map[FeedbackFields.createdAt] as String) ?? DateTime.now()
