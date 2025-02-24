@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:eseepark/globals.dart';
+import 'package:eseepark/screens/others/accounts/partials/favorites.dart';
 import 'package:eseepark/screens/others/accounts/partials/settings.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -137,7 +138,13 @@ class _AccountState extends State<Account> with AutomaticKeepAliveClientMixin<Ac
               title: 'Personal',
               children: [
                 SectionItem(title: 'Profile', showDivider: true),
-                SectionItem(title: 'Favorites')
+                SectionItem(
+                  title: 'Favorites',
+                  onTap: () => Get.to(() => const Favorites(),
+                    transition: Transition.rightToLeft,
+                    duration: const Duration(milliseconds: 400)
+                  ),
+                )
               ],
             ),
             SizedBox(height: screenHeight * 0.03),

@@ -311,76 +311,76 @@ class EstablishmentController {
 
 
   EstablishmentController()
-      : establishmentStream = Rx.combineLatest4(
-    supabase
-        .from('establishments')
-        .stream(primaryKey: ['establishment_id'])
-        .eq('availability_status', 'operating')
-        .order('created_at', ascending: true)
-        .limit(10),
-    supabase
-        .from('parking_rates')
-        .stream(primaryKey: ['rate_id']),
-    supabase
-        .from('parking_sections')
-        .stream(primaryKey: ['section_id']),
-    supabase
-        .from('feedback_reviews')
-        .stream(primaryKey: ['review_id']),
-        (estData, ratesData, sectionsData, feedbackData) => (estData, ratesData, sectionsData, feedbackData),
-  ).asyncMap((data) async {
-    final estData = data.$1;
-    final ratesData = data.$2;
-    final sectionsData = data.$3;
-    final feedbackData = data.$4;
+      : establishmentStream = supabase
+      .from('establishments')
+      .stream(primaryKey: ['establishment_id'])
+      .eq('availability_status', 'operating')
+      .order('created_at', ascending: true)
+      .limit(10)
+      .asyncMap((data) async {
+    List<Establishment> establishments = [];
 
-    if (estData.isEmpty) return [];
+    print('Found: ${data.length} establishments');
 
-    // Fetch parking slot counts in one query instead of looping
-    final slotCountsResponse = await supabase
-        .from('parking_slots')
-        .select('section_id, COUNT(*)')
-        .eq('status', 'available');
+    for (var est in data) {
+      final ratesResponse = await supabase
+          .from('parking_rates')
+          .select('*')
+          .eq('establishment_id', est['establishment_id'])
+          .order('created_at', ascending: true);
 
-    final slotCounts = Map.fromEntries(
-      slotCountsResponse.map((slot) => MapEntry(slot['section_id'], slot['count'] as int)),
-    );
+      ParkingRate? parkingRate;
+      if (ratesResponse.isNotEmpty) {
+        parkingRate = ParkingRate.fromMap(ratesResponse.first);
+      }
 
-    List<Establishment> establishments = estData.map((est) {
-      // Get parking rate for this establishment
-      ParkingRate? parkingRate = ratesData
-          .where((rate) => rate['establishment_id'] == est['establishment_id'])
-          .map((rate) => ParkingRate.fromMap(rate))
-          .firstOrNull;
+      int? parkingSlotsCount;
 
-      // Get sections for this establishment
-      List<ParkingSection> parkingSections = sectionsData
-          .where((section) => section['establishment_id'] == est['establishment_id'])
-          .map((section) {
-        int availableSlots = slotCounts[section['section_id']] ?? 0;
-        return ParkingSection.fromMap(section);
-      })
-          .toList();
+      final sectionsResponse = await supabase
+          .from('parking_sections')
+          .select('*')
+          .eq('establishment_id', est['establishment_id'])
+          .order('created_at', ascending: true);
 
-      // Calculate average rating
+      if (sectionsResponse.isNotEmpty) {
+        for (var sectionMap in sectionsResponse) {
+          // Query the count of parking slots for each section
+          final countResponse = await supabase
+              .from('parking_slots')
+              .select()
+              .eq('section_id', sectionMap['section_id'])
+              .eq('status', 'available')
+              .count();
+
+          if (countResponse.count > 0) {
+            parkingSlotsCount = countResponse.count;
+          }
+        }
+      }
+
+      // Query the average rating for the establishment
+      final ratingResponse = await supabase
+          .from('feedback_reviews')
+          .select('rating')
+          .eq('establishment_id', est['establishment_id']);
+
       double avgRating = 0.0;
-      final estFeedbacks = feedbackData.where((review) => review['establishment_id'] == est['establishment_id']);
-      if (estFeedbacks.isNotEmpty) {
-        double total = estFeedbacks
+      if (ratingResponse.isNotEmpty) {
+        double total = ratingResponse
             .map<double>((review) => (review['rating'] as num).toDouble())
             .reduce((a, b) => a + b);
 
-        avgRating = total / estFeedbacks.length;
-        avgRating = avgRating > 5 ? 5 : double.parse(avgRating.toStringAsFixed(1));
+        avgRating = total / ratingResponse.length;
+        avgRating = avgRating > 5 ? 5 : double.parse(avgRating.toStringAsFixed(1)); // Ensure max 5 and round to 1 decimal place
       }
 
-      return Establishment.fromMap({
+      establishments.add(Establishment.fromMap({
         ...est,
         'parking_rate': parkingRate?.toMap() ?? {},
-        'parking_slots_count': parkingSections.fold(0.0, (sum, s) => sum + (s.parkingSlots?.where((slot) => slot.slotStatus == 'available').length ?? 0)),
+        'parking_slots_count': parkingSlotsCount,
         'feedbacks_total_rating': avgRating,
-      });
-    }).toList();
+      }));
+    }
 
     return establishments;
   });

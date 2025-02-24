@@ -399,7 +399,7 @@ class _ParkingSheetState extends State<ParkingSheet> {
                       ),
                     ),
                     InkWell(
-                      onTap: () => Get.back(),
+                      onTap: () => Navigator.pop(context),
                       child: Container(
                         decoration: BoxDecoration(
                           border: Border.all(

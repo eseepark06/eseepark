@@ -1,5 +1,6 @@
 import 'package:eseepark/controllers/establishments/establishments_controller.dart';
 import 'package:eseepark/globals.dart';
+import 'package:eseepark/main.dart';
 import 'package:eseepark/models/profile_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -8,6 +9,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:supabase/supabase.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../models/establishment_model.dart';
@@ -32,6 +34,17 @@ class _ShowInfoState extends State<ShowInfo> {
   final ScrollController _scrollController = ScrollController();
   late final MapController _mapController;
 
+  bool isNoSlotShown = false;
+
+  List<dynamic>? favorites = supabase.auth.currentUser?.userMetadata?['favorite_establishments'];
+
+  bool isFavorite = false;
+
+  void initData() async {
+    isFavorite = favorites != null && favorites!.contains(widget.establishmentId.toString());
+  }
+
+
   bool isImageNotShown = false;
 
   String type = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
@@ -41,6 +54,7 @@ class _ShowInfoState extends State<ShowInfo> {
     super.initState();
     _mapController = MapController();
     _scrollController.addListener(_scrollListener);
+    initData();
   }
 
   void _scrollListener() {
@@ -60,13 +74,12 @@ class _ShowInfoState extends State<ShowInfo> {
   }
 
 
-  // Function to convert 24-hour time to 12-hour format with AM/PM
   String formatTime(String time) {
     try {
       final DateTime dateTime = DateFormat("HH:mm").parse(time);
-      return DateFormat("h:mm a").format(dateTime); // Converts to AM/PM format
+      return DateFormat("h:mm a").format(dateTime);
     } catch (e) {
-      return time; // Return original if parsing fails
+      return time;
     }
   }
 
@@ -84,9 +97,6 @@ class _ShowInfoState extends State<ShowInfo> {
 
           final establishment = snapshot.data;
 
-          print('Operating hours: ${establishment?.operatingHours.length}');
-          print('Feedbacks: ${establishment?.feedbacks?.length}');
-
           if (establishment == null) {
             return Center(child: CircularProgressIndicator());
           }
@@ -100,6 +110,53 @@ class _ShowInfoState extends State<ShowInfo> {
               );
             }
           });
+
+          if((establishment.parkingSections?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.where((slot) => slot.slotStatus == 'available').length ?? 0)) ?? 0) == 0) {
+
+
+            if(!isNoSlotShown) {
+              isNoSlotShown = true;
+
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+
+                  print('No slots available: $isNoSlotShown');
+
+                  if (!Get.isSnackbarOpen) { // Prevent multiple snackbars
+                    Get.snackbar(
+                      'No Slots Available',
+                      'Sorry, there are no slots available at this time.',
+                      snackPosition: SnackPosition.BOTTOM,
+                      backgroundColor: Colors.red.shade600,
+                      colorText: Colors.white,
+                      margin: EdgeInsets.only(
+                          bottom: screenHeight * 0.12,
+                          left: screenWidth * 0.05,
+                          right: screenWidth * 0.05
+                      ),
+                      duration: Duration(days: 1), // Keeps the Snackbar visible indefinitely
+                      isDismissible: false,
+                      overlayBlur: 0.0, // Prevents Snackbar from being an overlay
+                      overlayColor: Colors.transparent, // Ensures it does not get dismissed by Get.back()
+                    );
+
+                  }
+                }
+              });
+            } else {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+              });
+            }
+          } else {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if(mounted) {
+                if(isNoSlotShown || Get.isSnackbarOpen) {
+                  Get.closeAllSnackbars();
+                  isNoSlotShown = false;
+                }
+              }
+            });
+          }
 
           return Stack(
             children: [
@@ -377,10 +434,16 @@ class _ShowInfoState extends State<ShowInfo> {
                               child: Icon(Icons.local_parking, color: Colors.white, size: screenWidth * 0.03),
                             ),
                             SizedBox(width: screenWidth * 0.02),
-                            Text('${establishment.parkingSections?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.where((slot) => slot.slotStatus == 'available').length ?? 0)) ?? 0} out of ${establishment.parkingSections?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.length ?? 0)) ?? 0} slots are available',
+                            Text((establishment.parkingSections?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.where((slot) => slot.slotStatus == 'available').length ?? 0)) ?? 0) == 0 ?
+                            'No slots available' :
+                            '${establishment.parkingSections?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.where((slot) => slot.slotStatus == 'available').length ?? 0)) ?? 0} out of ${establishment.parkingSections?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.length ?? 0)) ?? 0} slots are available',
                               style: TextStyle(
                                 fontSize: screenWidth * 0.033,
-                                height: 1.1
+                                height: 1.1,
+                                color: (establishment.parkingSections?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.where((slot) => slot.slotStatus == 'available').length ?? 0)) ?? 0) == 0 ?
+                                    Colors.red : (establishment.parkingSections?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.where((slot) => slot.slotStatus == 'available').length ?? 0)) ?? 0) == 1 ?
+                                    Colors.orange.shade600 :
+                                    Theme.of(context).colorScheme.primary
                               ),
                             )
                           ],
@@ -801,7 +864,7 @@ class _ShowInfoState extends State<ShowInfo> {
               Positioned(
                 bottom: screenHeight * 0.04,
                 left: screenWidth * 0.05,
-                right: screenWidth * 0.05,
+                right: screenWidth * 0.05, 
                 child: InkWell(
                   onTap: () => showModalBottomSheet(
                       context: context,
@@ -829,11 +892,15 @@ class _ShowInfoState extends State<ShowInfo> {
                 ),
               ),
               Positioned(
-                top: screenHeight * 0.058,
+                top: screenHeight * 0.065,
                 left: screenWidth * 0.05,
                 child: InkWell(
                   borderRadius: BorderRadius.circular(100),
                   onTap: () {
+                    if(Get.isSnackbarOpen) {
+                      Get.closeAllSnackbars();
+                    }
+
                     Navigator.pop(context);
                   },
                   child: Container(
@@ -860,6 +927,50 @@ class _ShowInfoState extends State<ShowInfo> {
                   ),
                 ),
 
+              ),
+              Positioned(
+                top: screenHeight * 0.065,
+                right: screenWidth * 0.05,
+                child: InkWell(
+                  onTap: () async {
+                    final user = supabase.auth.currentUser;
+                    if (user == null) return;
+
+                    List<String> favoriteEstablishments = (user.userMetadata?['favorite_establishments'] as List<dynamic>?)
+                        ?.map((e) => e.toString())
+                        .toList() ?? [];
+
+                    if (favoriteEstablishments.contains(establishment.establishmentId)) {
+                      favoriteEstablishments.remove(establishment.establishmentId);
+                    } else {
+                      favoriteEstablishments.add(establishment.establishmentId);
+                    }
+
+                    await supabase.auth.updateUser(
+                      UserAttributes(
+                        data: {'favorite_establishments': favoriteEstablishments},
+                      ),
+                    );
+
+                    setState(() {}); // If using StatefulWidget
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 2,
+                      ),
+                    ),
+                    padding: EdgeInsets.all(screenWidth * 0.015),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.favorite,
+                      color: supabase.auth.currentUser?.userMetadata?['favorite_establishments'] != null && supabase.auth.currentUser?.userMetadata?['favorite_establishments'].contains(establishment.establishmentId) ? Colors.red : Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                    ),
+                  ),
+                ),
               )
             ],
           );

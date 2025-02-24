@@ -61,6 +61,7 @@ dependencies:
   flutter_map: ^8.0.0
   location: ^8.0.0
   latlong2: ^0.9.1
+  rxdart: ^0.28.0
 
 flutter_native_splash:
   color: "#151515"
