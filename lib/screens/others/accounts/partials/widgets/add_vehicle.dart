@@ -3,12 +3,24 @@ import 'package:eseepark/customs/custom_textfields.dart';
 import 'package:eseepark/globals.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:get/get.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
+import 'dart:typed_data';
+import 'package:image/image.dart' as img;
+
+import '../../../../../controllers/vehicles/vehicle_controller.dart';
+import '../../../../../models/vehicle_model.dart'; // Import image package
 
 class AddVehicle extends StatefulWidget {
-  const AddVehicle({super.key});
+  final List<Vehicle> userVehicles;
+
+  const AddVehicle({
+    super.key,
+    required this.userVehicles
+  });
 
   @override
   State<AddVehicle> createState() => _AddVehicleState();
@@ -19,6 +31,8 @@ class _AddVehicleState extends State<AddVehicle> {
   final TextEditingController vehicleCategory = TextEditingController();
   final TextEditingController vehicleLicensePlate = TextEditingController();
   final TextEditingController vehicleName = TextEditingController();
+
+  File? selectedVehicleImage;
 
   final List<String> carCategories = [
     'Sedan', 'Hatchback', 'Crossover', 'SUV', 'MPV', 'Pickup', 'Van'
@@ -43,7 +57,7 @@ class _AddVehicleState extends State<AddVehicle> {
                 Navigator.pop(context);
                 XFile? pickedFile = await _picker.pickImage(source: ImageSource.camera);
                 if (pickedFile != null) {
-                  _cropImage(File(pickedFile.path), context);
+                  await _cropImage(File(pickedFile.path), context);
                 }
               },
             ),
@@ -53,7 +67,7 @@ class _AddVehicleState extends State<AddVehicle> {
                 Navigator.pop(context);
                 XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
                 if (pickedFile != null) {
-                  _cropImage(File(pickedFile.path), context);
+                  await _cropImage(File(pickedFile.path), context);
                 }
               },
             ),
@@ -68,27 +82,62 @@ class _AddVehicleState extends State<AddVehicle> {
   }
 
   Future<void> _cropImage(File imageFile, BuildContext context) async {
+    if (!mounted) return; // Ensure the widget is still active
+
     CroppedFile? croppedFile = await ImageCropper().cropImage(
       sourcePath: imageFile.path,
-      aspectRatio: const CropAspectRatio(ratioX: 1, ratioY: 1),
+      aspectRatio: const CropAspectRatio(ratioX: 1.5, ratioY: 1),
       uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: 'Crop Image',
-          toolbarColor: Colors.blue,
-          toolbarWidgetColor: Colors.white,
-          lockAspectRatio: false,
-        ),
-        IOSUiSettings(
-          title: 'Crop Image',
-        ),
+        if (mounted) // Check if widget is still active before using context
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Image',
+            toolbarColor: Theme.of(Get.context as BuildContext).colorScheme.primary,
+            toolbarWidgetColor: Colors.white,
+            lockAspectRatio: true,
+          ),
+        if (mounted)
+          IOSUiSettings(
+            title: 'Crop Image',
+          ),
       ],
     );
 
-    if (croppedFile != null) {
-      File croppedImage = File(croppedFile.path);
-      // You can now use croppedImage
-      print("Cropped Image Path: ${croppedImage.path}");
+    // Only update global variable if cropping was completed successfully
+    if (croppedFile != null && mounted) {
+      setState(() {
+        selectedVehicleImage = File(croppedFile.path);
+      });
+      print("Cropped Image Path: ${selectedVehicleImage?.path}");
     }
+  }
+
+  Future<File?> compressImage(File file, {int targetSizeKB = 100}) async {
+    final int targetSizeBytes = targetSizeKB * 1024;
+    int quality = 80; // Start with high quality
+    int minWidth = 1280; // Initial width
+
+    File? compressedFile = file;
+
+    do {
+      final XFile? result = await FlutterImageCompress.compressAndGetFile(
+        file.absolute.path,
+        '${file.absolute.path}_compressed.jpg',
+        quality: quality,
+        minWidth: minWidth,
+        minHeight: (minWidth * 0.75).toInt(), // Maintain aspect ratio
+        format: CompressFormat.jpeg,
+      );
+
+      if (result != null) {
+        compressedFile = File(result.path);
+      }
+
+      quality -= 10; // Reduce quality gradually
+      minWidth -= 200; // Decrease resolution step by step
+
+    } while (compressedFile!.lengthSync() > targetSizeBytes && quality > 10 && minWidth > 600);
+
+    return compressedFile;
   }
 
   @override
@@ -124,7 +173,7 @@ class _AddVehicleState extends State<AddVehicle> {
                       Text(
                         'Add Vehicle',
                         style: TextStyle(
-                          fontSize: screenWidth * 0.075,
+                          fontSize: screenWidth * 0.065,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -169,8 +218,8 @@ class _AddVehicleState extends State<AddVehicle> {
                                   color: Color(0xffEAEAEA),
                                   borderRadius: BorderRadius.circular(25),
                                 ),
-                                padding: EdgeInsets.all(screenWidth * 0.05),
-                                child: Column(
+                                padding: EdgeInsets.all(selectedVehicleImage == null ? screenWidth * 0.05 : 0),
+                                child: selectedVehicleImage == null ? Column(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -198,6 +247,10 @@ class _AddVehicleState extends State<AddVehicle> {
                                       ),
                                     ),
                                   ],
+                                ) :
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(25),
+                                  child: Image.file(selectedVehicleImage!, fit: BoxFit.fill)
                                 ),
                               ),
                             ),
@@ -330,7 +383,11 @@ class _AddVehicleState extends State<AddVehicle> {
                               fontSize: screenSize * 0.012,
                             ),
                             onChanged: (val) {
-                              setState(() {});
+                              setState(() {
+                                if(val.trim().isNotEmpty) {
+                                  vehicleLicensePlate.text = val.toUpperCase();
+                                }
+                              });
                             },
                             horizontalPadding: screenWidth * 0.05,
                             verticalPadding: screenHeight * 0.0165,
@@ -384,11 +441,54 @@ class _AddVehicleState extends State<AddVehicle> {
               child: SizedBox(
                 width: screenWidth * 0.9,
                 child: ElevatedButton(
-                  onPressed: vehicleType.text.trim().isEmpty
-                      || vehicleCategory.text.trim().isEmpty
-                      || vehicleLicensePlate.text.trim().isEmpty
-                      || vehicleName.text.trim().isEmpty ? null : () {
+                  onPressed: (vehicleType.text.trim().isEmpty ||
+                      vehicleCategory.text.trim().isEmpty ||
+                      vehicleLicensePlate.text.trim().isEmpty ||
+                      vehicleName.text.trim().isEmpty ||
+                      (vehicleLicensePlate.text.trim().isNotEmpty && vehicleName.text.trim().isNotEmpty &&
+                          widget.userVehicles.any((vehicle) =>
+                          vehicle.licensePlate == vehicleLicensePlate.text.trim() ||
+                              vehicle.name.toLowerCase() == vehicleName.text.trim().toLowerCase()))) ? null : () async {
+                    if (vehicleType.text.trim().isEmpty ||
+                        vehicleCategory.text.trim().isEmpty ||
+                        vehicleLicensePlate.text.trim().isEmpty ||
+                        vehicleName.text.trim().isEmpty ||
+                        (vehicleLicensePlate.text.trim().isNotEmpty && vehicleName.text.trim().isNotEmpty &&
+                            widget.userVehicles.any((vehicle) =>
+                            vehicle.licensePlate == vehicleLicensePlate.text.trim() ||
+                                vehicle.name.toLowerCase() == vehicleName.text.trim().toLowerCase()))) {
+                      return;
+                    }
 
+                    String formattedVehicleName = vehicleName.text.trim();
+                    formattedVehicleName = formattedVehicleName[0].toUpperCase() + formattedVehicleName.substring(1);
+
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) {
+                        return Center(child: CircularProgressIndicator());
+                      },
+                    );
+
+                    final controller = VehicleController();
+                    bool success = await controller.addVehicle(
+                      vehicleType: vehicleType.text.trim(),
+                      vehicleCategory: vehicleCategory.text.trim(),
+                      vehicleLicensePlate: vehicleLicensePlate.text.trim(),
+                      vehicleName: formattedVehicleName, // Capitalized name
+                      vehicleImage: selectedVehicleImage, // Image file (optional)
+                    );
+
+                    Navigator.pop(context);
+
+                    if (success) {
+                      Navigator.pop(context, true);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Failed to add vehicle. Try again.")),
+                      );
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary,
