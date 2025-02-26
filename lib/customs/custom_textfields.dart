@@ -1,5 +1,6 @@
 import 'package:eseepark/globals.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/general/theme_provider.dart';
@@ -143,7 +144,7 @@ class _CustomTextFieldWithLabelState extends State<CustomTextFieldWithLabel> {
               child: Text(widget.bottomMessage ?? '',
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
-                  fontSize: screenSize * 0.007
+                  fontSize: screenSize * 0.008
                 ),
               ),
             )
@@ -309,4 +310,160 @@ class _CustomTextFieldState extends State<CustomTextField> {
     );
   }
 }
+
+class CustomPicker extends StatefulWidget {
+  final List<String> items;
+  final String title;
+  final TextEditingController withData;
+
+  const CustomPicker({
+    super.key,
+    required this.items,
+    required this.title,
+    required this.withData
+  });
+
+  @override
+  State<CustomPicker> createState() => _CustomPickerState();
+}
+
+class _CustomPickerState extends State<CustomPicker> {
+  String? selectedItem;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if(widget.withData.text.trim().isNotEmpty) {
+      selectedItem = widget.withData.text;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: EdgeInsets.only(
+              left: screenWidth * 0.05,
+              right: screenWidth * 0.05,
+              top: screenHeight * 0.02,
+              bottom: screenHeight * 0.01
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(widget.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w700,
+                    fontSize: screenWidth * 0.05
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: () => Get.back(),
+                borderRadius: BorderRadius.circular(100),
+                child: Container(
+                  decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 2
+                      )
+                  ),
+                  padding: EdgeInsets.all(screenSize * 0.001),
+                  child: Icon(Icons.close,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: screenWidth * 0.06
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+        Container(
+          child: ListView.builder(
+            itemCount: widget.items.length,
+            shrinkWrap: true,
+            itemBuilder: (context, index) {
+              return ListTile(
+                onTap: () {
+                  if(widget.items[index] != selectedItem) {
+                    setState(() {
+                      selectedItem = widget.items[index];
+                    });
+                  } else {
+                    setState(() {
+                      selectedItem = null;
+                    });
+                  }
+                },
+                leading: Checkbox(
+                  value: widget.items[index] == selectedItem,
+                  onChanged: (selected) {
+                    if(widget.items[index] != selectedItem) {
+                      setState(() {
+                        selectedItem = widget.items[index];
+                      });
+                    } else {
+                      setState(() {
+                        selectedItem = null;
+                      });
+                    }
+                  },
+                  activeColor: Theme.of(context).colorScheme.primary,
+                  checkColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)
+                  ),
+                  visualDensity: VisualDensity.comfortable,
+                  focusColor: Colors.white,
+                ),
+                title: Text(widget.items[index],
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w500
+                  ),
+                ),
+              );
+            }
+          ),
+        ),
+        Container(
+          width: screenWidth,
+          padding: EdgeInsets.symmetric(
+            horizontal: screenWidth * 0.04,
+            vertical: screenHeight * 0.015
+          ),
+          child: ElevatedButton(
+            onPressed: selectedItem == null ? null : () => Get.back(result: selectedItem),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10)
+              ),
+              padding: EdgeInsets.symmetric(
+                vertical: screenHeight * 0.013
+              ),
+            ),
+            child: Text('Select',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: screenWidth * 0.04,
+                fontWeight: FontWeight.w500
+              ),
+            ),
+          ),
+        )
+      ],
+    );
+  }
+}
+
 

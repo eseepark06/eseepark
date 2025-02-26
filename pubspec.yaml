@@ -63,6 +63,8 @@ dependencies:
   latlong2: ^0.9.1
   rxdart: ^0.28.0
   dotted_border: ^2.1.0
+  image_picker: ^1.1.2
+  image_cropper: ^9.0.0
 
 flutter_native_splash:
   color: "#151515"
