@@ -41,6 +41,7 @@ class _QrCodeScannerState extends State<QrCodeScanner> with SingleTickerProvider
   @override
   void dispose() {
     _animationController.dispose();
+    controller.dispose();
     super.dispose();
   }
 

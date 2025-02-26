@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:eseepark/globals.dart';
 import 'package:eseepark/screens/others/accounts/partials/favorites.dart';
 import 'package:eseepark/screens/others/accounts/partials/settings.dart';
+import 'package:eseepark/screens/others/accounts/partials/vehicles.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -141,8 +142,16 @@ class _AccountState extends State<Account> with AutomaticKeepAliveClientMixin<Ac
                 SectionItem(
                   title: 'Favorites',
                   onTap: () => Get.to(() => const Favorites(),
-                    transition: Transition.rightToLeft,
-                    duration: const Duration(milliseconds: 400)
+                      transition: Transition.rightToLeft,
+                      duration: const Duration(milliseconds: 400)
+                  ),
+                  showDivider: true,
+                ),
+                SectionItem(
+                  title: 'Vehicles',
+                  onTap: () => Get.to(() => const Vehicles(),
+                      transition: Transition.rightToLeft,
+                      duration: const Duration(milliseconds: 400)
                   ),
                 )
               ],

@@ -409,57 +409,58 @@ import 'package:get/get.dart';
                       color: Theme.of(context).scaffoldBackgroundColor,
                       child: Column(
                         children: [
-                          Container(
-                              height: screenHeight * 0.054,
-                              width: screenWidth,
-                              margin: EdgeInsets.only(top: screenHeight * 0.016, bottom: screenHeight * 0.025),
-                              child: ListView(
-                                shrinkWrap: true,
-                                scrollDirection: Axis.horizontal,
-                                children: [
-                                  SizedBox(width: screenWidth * 0.05),
-                                  ElevatedButton(
-                                    onPressed: () {},
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor: Theme.of(context).colorScheme.onPrimary,
-                                        elevation: 0
-                                    ),
-                                    child: SvgPicture.asset('assets/svgs/home/filter.svg',
-                                      width: screenSize * 0.02,
-                                    ),
-                                  ),
-                                  SizedBox(width: screenSize * 0.01),
-                                  for (FilterButton filterButton in filterButtons)
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          if(selectedFilter == filterButton.index) {
-                                            selectedFilter = null;
-                                          } else {
-                                            selectedFilter = filterButton.index;
-                                          }
-                                        });
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                          backgroundColor: selectedFilter != null ? selectedFilter == filterButton.index ? Theme.of(context).colorScheme.onPrimary : Colors.white : Colors.grey.shade400,
-                                          elevation: 0,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(30),
-                                          )
-                                      ),
-                                      child: Text(filterButton.name,
-                                        style: TextStyle(
-                                            fontSize: screenSize * 0.012,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w600
-                                        ),
-                                      ),
-                                    )
-                                ],
-                              )
-                          ),
+                          // Container(
+                          //     height: screenHeight * 0.054,
+                          //     width: screenWidth,
+                          //     margin: EdgeInsets.only(top: screenHeight * 0.016, bottom: screenHeight * 0.025),
+                          //     child: ListView(
+                          //       shrinkWrap: true,
+                          //       scrollDirection: Axis.horizontal,
+                          //       children: [
+                          //         SizedBox(width: screenWidth * 0.05),
+                          //         ElevatedButton(
+                          //           onPressed: () {},
+                          //           style: ElevatedButton.styleFrom(
+                          //               backgroundColor: Theme.of(context).colorScheme.onPrimary,
+                          //               elevation: 0
+                          //           ),
+                          //           child: SvgPicture.asset('assets/svgs/home/filter.svg',
+                          //             width: screenSize * 0.02,
+                          //           ),
+                          //         ),
+                          //         SizedBox(width: screenSize * 0.01),
+                          //         for (FilterButton filterButton in filterButtons)
+                          //           ElevatedButton(
+                          //             onPressed: () {
+                          //               setState(() {
+                          //                 if(selectedFilter == filterButton.index) {
+                          //                   selectedFilter = null;
+                          //                 } else {
+                          //                   selectedFilter = filterButton.index;
+                          //                 }
+                          //               });
+                          //             },
+                          //             style: ElevatedButton.styleFrom(
+                          //                 backgroundColor: selectedFilter != null ? selectedFilter == filterButton.index ? Theme.of(context).colorScheme.onPrimary : Colors.white : Colors.grey.shade400,
+                          //                 elevation: 0,
+                          //                 shape: RoundedRectangleBorder(
+                          //                   borderRadius: BorderRadius.circular(30),
+                          //                 )
+                          //             ),
+                          //             child: Text(filterButton.name,
+                          //               style: TextStyle(
+                          //                   fontSize: screenSize * 0.012,
+                          //                   color: Colors.white,
+                          //                   fontWeight: FontWeight.w600
+                          //               ),
+                          //             ),
+                          //           )
+                          //       ],
+                          //     )
+                          // ),
                           Container(
                               padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+                              margin: EdgeInsets.only(top: screenHeight * 0.02, bottom: screenHeight * 0.025),
                               alignment: Alignment.topCenter,
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,

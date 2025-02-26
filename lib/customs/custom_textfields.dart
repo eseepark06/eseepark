@@ -13,6 +13,8 @@ class CustomTextFieldWithLabel extends StatefulWidget {
   final TextStyle placeholderStyle;
   final TextStyle? mainTextStyle;
   final Function(String)? onChanged;
+  final Function()? onTap;
+  final Function()? onClickField;
   final Color? backgroundColor;
   final double? verticalPadding;
   final double? horizontalPadding;
@@ -22,6 +24,8 @@ class CustomTextFieldWithLabel extends StatefulWidget {
   final Color? enabledBorderColor;
   final Color? focusedBorderColor;
   final Color? cursorColor;
+  final String? bottomMessage;
+  final bool? isEditable;
 
   const CustomTextFieldWithLabel({
     super.key,
@@ -32,6 +36,8 @@ class CustomTextFieldWithLabel extends StatefulWidget {
     required this.placeholderStyle,
     this.mainTextStyle,
     this.onChanged,
+    this.onTap,
+    this.onClickField,
     this.backgroundColor,
     this.verticalPadding,
     this.horizontalPadding,
@@ -40,7 +46,9 @@ class CustomTextFieldWithLabel extends StatefulWidget {
     this.disabledBorderColor,
     this.enabledBorderColor,
     this.focusedBorderColor,
-    this.cursorColor
+    this.cursorColor,
+    this.bottomMessage,
+    this.isEditable
   });
 
   @override
@@ -77,51 +85,68 @@ class _CustomTextFieldWithLabelState extends State<CustomTextFieldWithLabel> {
               ],
             ),
             SizedBox(height: screenHeight * 0.01),
-            TextFormField(
-              controller: widget.controller,
-              onChanged: widget.onChanged,
-              style: widget.mainTextStyle,
-              cursorColor: widget.cursorColor,
-              decoration: InputDecoration(
-                hintText: widget.placeholder,
-                hintStyle: widget.placeholderStyle,
-                fillColor: widget.backgroundColor,
-                isDense: true,
-                filled: true,
-                contentPadding: EdgeInsets.symmetric(
-                    vertical: widget.verticalPadding ?? screenHeight * 0.01,
-                    horizontal: widget.horizontalPadding ?? screenWidth * 0.02
-                ),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
-                    borderSide: BorderSide(
-                        color: widget.disabledBorderColor ?? Colors.transparent,
-                        width: widget.borderWidth ?? 0.0
-                    )
-                ),
-                disabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
-                    borderSide: BorderSide(
-                        color: widget.disabledBorderColor ?? Colors.transparent,
-                        width: widget.borderWidth ?? 0.0
-                    )
-                ),
-                enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
-                    borderSide: BorderSide(
-                        color: widget.enabledBorderColor ?? Colors.transparent,
-                        width: widget.borderWidth ?? 0.0
-                    )
-                ),
-                focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
-                    borderSide: BorderSide(
-                        color: widget.focusedBorderColor ?? Colors.transparent,
-                        width: widget.borderWidth ?? 0.0
-                    )
+            InkWell(
+              onTap: widget.onClickField,
+              borderRadius: BorderRadius.circular(widget.borderRadius ?? 30),
+              child: TextFormField(
+                controller: widget.controller,
+                onChanged: widget.onChanged,
+                onTap: widget.onTap,
+                style: widget.mainTextStyle,
+                cursorColor: widget.cursorColor,
+                decoration: InputDecoration(
+                  hintText: widget.placeholder,
+                  hintStyle: widget.placeholderStyle,
+                  fillColor: widget.backgroundColor,
+                  isDense: true,
+                  filled: true,
+                  enabled: widget.isEditable ?? true,
+                  contentPadding: EdgeInsets.symmetric(
+                      vertical: widget.verticalPadding ?? screenHeight * 0.01,
+                      horizontal: widget.horizontalPadding ?? screenWidth * 0.02
+                  ),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
+                      borderSide: BorderSide(
+                          color: widget.disabledBorderColor ?? Colors.transparent,
+                          width: widget.borderWidth ?? 0.0
+                      )
+                  ),
+                  disabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
+                      borderSide: BorderSide(
+                          color: widget.disabledBorderColor ?? Colors.transparent,
+                          width: widget.borderWidth ?? 0.0
+                      )
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
+                      borderSide: BorderSide(
+                          color: widget.enabledBorderColor ?? Colors.transparent,
+                          width: widget.borderWidth ?? 0.0
+                      )
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(widget.borderRadius ?? 10),
+                      borderSide: BorderSide(
+                          color: widget.focusedBorderColor ?? Colors.transparent,
+                          width: widget.borderWidth ?? 0.0
+                      )
+                  ),
                 ),
               ),
             ),
+            SizedBox(height: screenHeight * 0.01),
+            if(widget.bottomMessage != null)
+            Padding(
+              padding: EdgeInsets.only(left: screenWidth * 0.03),
+              child: Text(widget.bottomMessage ?? '',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
+                  fontSize: screenSize * 0.007
+                ),
+              ),
+            )
           ],
         ),
       ),
