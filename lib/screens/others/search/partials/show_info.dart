@@ -1,13 +1,18 @@
+import 'dart:convert';
+
 import 'package:eseepark/controllers/establishments/establishments_controller.dart';
 import 'package:eseepark/globals.dart';
 import 'package:eseepark/main.dart';
 import 'package:eseepark/models/profile_model.dart';
+import 'package:eseepark/screens/others/search/partials/qr_generated_establishment.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:supabase/supabase.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -130,14 +135,15 @@ class _ShowInfoState extends State<ShowInfo> {
                       backgroundColor: Colors.red.shade600,
                       colorText: Colors.white,
                       margin: EdgeInsets.only(
-                          bottom: screenHeight * 0.12,
+                          bottom: screenHeight * 0.1,
                           left: screenWidth * 0.05,
                           right: screenWidth * 0.05
                       ),
                       duration: Duration(days: 1), // Keeps the Snackbar visible indefinitely
                       isDismissible: false,
                       overlayBlur: 0.0, // Prevents Snackbar from being an overlay
-                      overlayColor: Colors.transparent, // Ensures it does not get dismissed by Get.back()
+                      overlayColor: Colors.transparent,
+                      animationDuration: Duration(milliseconds: 500)
                     );
 
                   }
@@ -768,16 +774,20 @@ class _ShowInfoState extends State<ShowInfo> {
                                       flags: InteractiveFlag.none
                                     ),
                                     keepAlive: true,
-                                    onTap: (TapPosition position, LatLng latLng) async {
-                                      print('Latitude: ${establishment.coordinates['lat']}');
-                                      print('Longitude: ${establishment.coordinates['lng']}');
+                                      onTap: (TapPosition position, LatLng latLng) async {
+                                        print('opened');
+                                        final double lat = establishment.coordinates['lat'];
+                                        final double lng = establishment.coordinates['lng'];
 
-                                      final Uri url = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=${establishment.coordinates['lat']},${establishment.coordinates['lng']}');
+                                        final Uri googleMapsUri = Uri.parse('comgooglemaps://?daddr=$lat,$lng&directionsmode=driving');
+                                        final Uri webUri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$lat,$lng');
 
-                                      if (!await launchUrl(url)) {
-                                        throw 'Could not launch $url';
-                                      }
-                                    },
+                                        if (await canLaunchUrl(googleMapsUri)) {
+                                          await launchUrl(googleMapsUri);
+                                        } else {
+                                          await launchUrl(webUri); // Fallback to web if the app is not installed
+                                        }
+                                      },
                                     onMapEvent: (MapEvent event) {
                                       print('Event: $event');
                                     },
@@ -931,45 +941,90 @@ class _ShowInfoState extends State<ShowInfo> {
               Positioned(
                 top: screenHeight * 0.065,
                 right: screenWidth * 0.05,
-                child: InkWell(
-                  onTap: () async {
-                    final user = supabase.auth.currentUser;
-                    if (user == null) return;
+                child: Row(
+                  children: [
+                    InkWell(
+                      onTap: () async {
 
-                    List<String> favoriteEstablishments = (user.userMetadata?['favorite_establishments'] as List<dynamic>?)
-                        ?.map((e) => e.toString())
-                        .toList() ?? [];
+                        final data = {
+                          "purpose": "establishment-redirect",
+                          "data": {
+                            "id": establishment.establishmentId
+                          }
+                        };
+                        final json = jsonEncode(data);
 
-                    if (favoriteEstablishments.contains(establishment.establishmentId)) {
-                      favoriteEstablishments.remove(establishment.establishmentId);
-                    } else {
-                      favoriteEstablishments.add(establishment.establishmentId);
-                    }
+                        showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            showDragHandle: true,
+                            enableDrag: true,
+                            builder: (context) {
+                              return QRGeneratedEstablishment(qrData: json, establishment: establishment);
+                            }
+                        );
 
-                    await supabase.auth.updateUser(
-                      UserAttributes(
-                        data: {'favorite_establishments': favoriteEstablishments},
-                      ),
-                    );
-
-                    setState(() {}); // If using StatefulWidget
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 2,
+                        print('generated');
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.secondary,
+                            width: 2,
+                          ),
+                        ),
+                        padding: EdgeInsets.all(screenWidth * 0.015),
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.qr_code,
+                          color: Theme.of(context).colorScheme.primary
+                        ),
                       ),
                     ),
-                    padding: EdgeInsets.all(screenWidth * 0.015),
-                    alignment: Alignment.center,
-                    child: Icon(
-                      Icons.favorite,
-                      color: supabase.auth.currentUser?.userMetadata?['favorite_establishments'] != null && supabase.auth.currentUser?.userMetadata?['favorite_establishments'].contains(establishment.establishmentId) ? Colors.red : Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                    SizedBox(width: screenWidth * 0.04),
+                    InkWell(
+                      onTap: () async {
+                        final user = supabase.auth.currentUser;
+                        if (user == null) return;
+
+                        List<String> favoriteEstablishments = (user.userMetadata?['favorite_establishments'] as List<dynamic>?)
+                            ?.map((e) => e.toString())
+                            .toList() ?? [];
+
+                        if (favoriteEstablishments.contains(establishment.establishmentId)) {
+                          favoriteEstablishments.remove(establishment.establishmentId);
+                        } else {
+                          favoriteEstablishments.add(establishment.establishmentId);
+                        }
+
+                        await supabase.auth.updateUser(
+                          UserAttributes(
+                            data: {'favorite_establishments': favoriteEstablishments},
+                          ),
+                        );
+
+                        setState(() {}); // If using StatefulWidget
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.secondary,
+                            width: 2,
+                          ),
+                        ),
+                        padding: EdgeInsets.all(screenWidth * 0.015),
+                        alignment: Alignment.center,
+                        child: Icon(
+                          Icons.favorite,
+                          color: supabase.auth.currentUser?.userMetadata?['favorite_establishments'] != null && supabase.auth.currentUser?.userMetadata?['favorite_establishments'].contains(establishment.establishmentId) ? Colors.red : Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               )
             ],

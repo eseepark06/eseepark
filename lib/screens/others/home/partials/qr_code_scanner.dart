@@ -71,13 +71,17 @@ class _QrCodeScannerState extends State<QrCodeScanner> with SingleTickerProvider
 
 
                 if (barcode.rawValue != null) {
-                  await Future.delayed(const Duration(milliseconds: 500));
+                  try {
+                    await Future.delayed(const Duration(milliseconds: 500));
+                    final json = jsonDecode(barcode.rawValue.toString());
 
-                  final json = jsonDecode(barcode.rawValue.toString());
-
-                  Navigator.pop(context, json);
-                  return;
+                    Navigator.pop(context, json);
+                    return;
+                  } catch(e) {
+                    Navigator.pop(context, null);
+                  }
                 } else {
+                  print('doing this');
                   Navigator.pop(context, null);
                 }
               }

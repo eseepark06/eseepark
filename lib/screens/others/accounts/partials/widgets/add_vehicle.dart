@@ -448,7 +448,8 @@ class _AddVehicleState extends State<AddVehicle> {
                       (vehicleLicensePlate.text.trim().isNotEmpty && vehicleName.text.trim().isNotEmpty &&
                           widget.userVehicles.any((vehicle) =>
                           vehicle.licensePlate == vehicleLicensePlate.text.trim() ||
-                              vehicle.name.toLowerCase() == vehicleName.text.trim().toLowerCase()))) ? null : () async {
+                              vehicle.name.toLowerCase() == vehicleName.text.trim().toLowerCase()))) ? null :
+                      () async {
                     if (vehicleType.text.trim().isEmpty ||
                         vehicleCategory.text.trim().isEmpty ||
                         vehicleLicensePlate.text.trim().isEmpty ||
@@ -472,12 +473,19 @@ class _AddVehicleState extends State<AddVehicle> {
                     );
 
                     final controller = VehicleController();
+
+                    // ✅ **Compress the image before uploading**
+                    File? compressedImage;
+                    if (selectedVehicleImage != null) {
+                      compressedImage = await compressImage(selectedVehicleImage!);
+                    }
+
                     bool success = await controller.addVehicle(
                       vehicleType: vehicleType.text.trim(),
                       vehicleCategory: vehicleCategory.text.trim(),
                       vehicleLicensePlate: vehicleLicensePlate.text.trim(),
                       vehicleName: formattedVehicleName, // Capitalized name
-                      vehicleImage: selectedVehicleImage, // Image file (optional)
+                      vehicleImage: compressedImage ?? selectedVehicleImage, // Use compressed image if available
                     );
 
                     Navigator.pop(context);
