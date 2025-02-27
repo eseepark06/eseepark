@@ -25,26 +25,38 @@ class QRGeneratedEstablishment extends StatefulWidget {
 }
 
 class _QRGeneratedEstablishmentState extends State<QRGeneratedEstablishment> {
-  final GlobalKey _globalKey = GlobalKey(); // Captures everything
+  final GlobalKey _globalKey = GlobalKey();
+  bool _isSharing = false; // Track sharing state
 
   /// Function to capture the full widget and share as an image
   Future<void> _shareFullScreen() async {
+    setState(() => _isSharing = true); // Disable button
+
     try {
-      await Future.delayed(Duration(milliseconds: 200)); // Ensure widget is rendered
+      await Future.delayed(Duration(milliseconds: 200)); // Ensure rendering is done
 
       RenderRepaintBoundary? boundary =
       _globalKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
 
       if (boundary == null) {
         print('Error: Render boundary is null');
+        setState(() => _isSharing = false);
         return;
       }
 
-      var image = await boundary.toImage(pixelRatio: 3.0); // High-quality capture
+      if (boundary.debugNeedsPaint) {
+        print('Waiting for widget to finish painting...');
+        await Future.delayed(Duration(milliseconds: 300));
+        WidgetsBinding.instance!.addPostFrameCallback((_) => _shareFullScreen());
+        return;
+      }
+
+      var image = await boundary.toImage(pixelRatio: 3.0);
       ByteData? byteData = await image.toByteData(format: ImageByteFormat.png);
 
       if (byteData == null) {
         print('Error: ByteData is null');
+        setState(() => _isSharing = false);
         return;
       }
 
@@ -60,21 +72,23 @@ class _QRGeneratedEstablishmentState extends State<QRGeneratedEstablishment> {
       );
     } catch (e) {
       print('Error sharing QR Code: $e');
+    } finally {
+      setState(() => _isSharing = false); // Enable button after sharing
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
-      key: _globalKey, // Key to capture the full widget
-      child: Container(
-        height: screenHeight * 0.83,
-        width: screenWidth,
-        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.07),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
+    return Container(
+      height: screenHeight * 0.83,
+      width: screenWidth,
+      padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.07),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          RepaintBoundary(
+            key: _globalKey,
+            child: Column(
               children: [
                 SizedBox(height: screenHeight * 0.03),
                 Text(
@@ -119,16 +133,22 @@ class _QRGeneratedEstablishmentState extends State<QRGeneratedEstablishment> {
                 ),
                 SizedBox(height: screenHeight * 0.02),
 
-                /// Share Button
+                /// Share Button (Disabled when sharing)
                 ElevatedButton.icon(
-                  onPressed: _shareFullScreen,
-                  icon: Icon(
+                  onPressed: _isSharing ? null : _shareFullScreen,
+                  icon: _isSharing
+                      ? SizedBox(
+                    width: screenWidth * 0.04,
+                    height: screenWidth * 0.04,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                      : Icon(
                     Icons.share,
                     color: Theme.of(context).colorScheme.primary,
                     size: screenWidth * 0.045,
                   ),
                   label: Text(
-                    'Share',
+                    _isSharing ? 'Sharing...' : 'Share',
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.w700,
@@ -153,32 +173,32 @@ class _QRGeneratedEstablishmentState extends State<QRGeneratedEstablishment> {
                 ),
               ],
             ),
+          ),
 
-            /// Done Button
-            Container(
-              width: screenWidth,
-              padding: EdgeInsets.only(bottom: screenHeight * 0.05),
-              child: ElevatedButton(
-                onPressed: () => Get.back(),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(13),
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: screenHeight * 0.016),
+          /// Done Button
+          Container(
+            width: screenWidth,
+            padding: EdgeInsets.only(bottom: screenHeight * 0.05),
+            child: ElevatedButton(
+              onPressed: () => Get.back(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(13),
                 ),
-                child: Text(
-                  'Done',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: screenWidth * 0.04,
-                  ),
+                padding: EdgeInsets.symmetric(vertical: screenHeight * 0.016),
+              ),
+              child: Text(
+                'Done',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: screenWidth * 0.04,
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
