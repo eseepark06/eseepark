@@ -31,7 +31,7 @@ void main() async {
     anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBxeGtyZWN1a3N5aXVhb3hjdXl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk0MjIxMDEsImV4cCI6MjA1NDk5ODEwMX0.wp_3D6Ha2OyqFZFwRzPD2fArWE4L6EYDpFBzYgjTsi8',
   );
 
-  if(!Platform.isAndroid) {
+  if(Platform.isAndroid) {
     runApp(
       DevicePreview(
         enabled: !kReleaseMode,
@@ -86,7 +86,7 @@ class Start extends StatelessWidget {
     }
 
 
-  if(!Platform.isAndroid) {
+  if(Platform.isAndroid) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       useInheritedMediaQuery: true,
