@@ -26,28 +26,29 @@ class QRGeneratedEstablishment extends StatefulWidget {
 
 class _QRGeneratedEstablishmentState extends State<QRGeneratedEstablishment> {
   final GlobalKey _globalKey = GlobalKey();
-  bool _isSharing = false; // Track sharing state
+  final GlobalKey _qrKey = GlobalKey(); // Separate key for shareable QR section
+  bool _isSharing = false;
 
-  /// Function to capture the full widget and share as an image
-  Future<void> _shareFullScreen() async {
-    setState(() => _isSharing = true); // Disable button
+  /// Function to capture only the QR section
+  Future<void> _shareQrSection() async {
+    setState(() => _isSharing = true);
 
     try {
-      await Future.delayed(Duration(milliseconds: 200)); // Ensure rendering is done
+      await Future.delayed(Duration(milliseconds: 500)); // Give UI time to render
 
       RenderRepaintBoundary? boundary =
-      _globalKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      _qrKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
 
       if (boundary == null) {
-        print('Error: Render boundary is null');
+        print('Error: Render boundary is null in Release Mode');
         setState(() => _isSharing = false);
         return;
       }
 
       if (boundary.debugNeedsPaint) {
         print('Waiting for widget to finish painting...');
-        await Future.delayed(Duration(milliseconds: 300));
-        WidgetsBinding.instance!.addPostFrameCallback((_) => _shareFullScreen());
+        await Future.delayed(Duration(milliseconds: 500));
+        WidgetsBinding.instance.addPostFrameCallback((_) => _shareQrSection());
         return;
       }
 
@@ -62,7 +63,7 @@ class _QRGeneratedEstablishmentState extends State<QRGeneratedEstablishment> {
 
       Uint8List pngBytes = byteData.buffer.asUint8List();
       final tempDir = await getTemporaryDirectory();
-      final file = await File('${tempDir.path}/qr_full_view.png').create();
+      final file = await File('${tempDir.path}/qr_section.png').create();
       await file.writeAsBytes(pngBytes);
 
       await Share.shareXFiles(
@@ -72,9 +73,59 @@ class _QRGeneratedEstablishmentState extends State<QRGeneratedEstablishment> {
       );
     } catch (e) {
       print('Error sharing QR Code: $e');
+      Get.snackbar(
+        'Error', 'Error encountered: $e',
+        duration: Duration(seconds: 5),
+      );
     } finally {
-      setState(() => _isSharing = false); // Enable button after sharing
+      setState(() => _isSharing = false);
     }
+  }
+
+
+
+  Widget template() {
+    return RepaintBoundary(
+      key: _qrKey, // This key will be used for capturing QR section only
+      child: Column(
+        children: [
+          SizedBox(height: screenHeight * 0.03),
+          Text(
+            'Scan QR code',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: screenWidth * 0.08,
+            ),
+          ),
+          Text(
+            'Scan this QR to be redirected to ${widget.establishment.name} establishment.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: screenWidth * 0.035),
+          ),
+          SizedBox(height: screenHeight * 0.03),
+
+          /// QR Code Container
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Theme.of(context).colorScheme.secondary),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            padding: EdgeInsets.all(screenWidth * 0.02),
+            child: QrImageView(
+              data: widget.qrData,
+              size: screenWidth * 0.5,
+              version: QrVersions.auto,
+              errorCorrectionLevel: QrErrorCorrectLevel.H,
+              embeddedImage: AssetImage('assets/images/general/eseepark-white-bg-1.png'),
+              embeddedImageStyle: QrEmbeddedImageStyle(
+                size: Size(screenWidth * 0.12, screenWidth * 0.12),
+              ),
+              padding: EdgeInsets.zero,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -86,92 +137,43 @@ class _QRGeneratedEstablishmentState extends State<QRGeneratedEstablishment> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          RepaintBoundary(
-            key: _globalKey,
-            child: Column(
-              children: [
-                SizedBox(height: screenHeight * 0.03),
-                Text(
-                  'Scan QR code',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: screenWidth * 0.08,
-                  ),
+          template(),
+          /// Share Button (Disabled when sharing)
+          ElevatedButton.icon(
+            onPressed: _isSharing ? null : _shareQrSection,
+            icon: _isSharing
+                ? SizedBox(
+              width: screenWidth * 0.04,
+              height: screenWidth * 0.04,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+                : Icon(
+              Icons.share,
+              color: Theme.of(context).colorScheme.primary,
+              size: screenWidth * 0.045,
+            ),
+            label: Text(
+              _isSharing ? 'Sharing...' : 'Share QR',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w700,
+                fontSize: screenWidth * 0.04,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 3,
                 ),
-                Text(
-                  'Scan this QR to be redirected to ${widget.establishment.name} establishment.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: screenWidth * 0.035),
-                ),
-                SizedBox(height: screenHeight * 0.03),
-
-                /// QR Code Container
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Theme.of(context).colorScheme.secondary),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  padding: EdgeInsets.all(screenWidth * 0.02),
-                  child: QrImageView(
-                    data: widget.qrData,
-                    size: screenWidth * 0.5,
-                    version: QrVersions.auto,
-                    errorCorrectionLevel: QrErrorCorrectLevel.H,
-                    embeddedImage: AssetImage('assets/images/general/eseepark-white-bg-1.png'),
-                    embeddedImageStyle: QrEmbeddedImageStyle(
-                      size: Size(screenWidth * 0.12, screenWidth * 0.12),
-                    ),
-                    padding: EdgeInsets.zero,
-                  ),
-                ),
-
-                SizedBox(height: screenHeight * 0.03),
-                Text(
-                  'You may share this generated QR with your friends!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: screenWidth * 0.035),
-                ),
-                SizedBox(height: screenHeight * 0.02),
-
-                /// Share Button (Disabled when sharing)
-                ElevatedButton.icon(
-                  onPressed: _isSharing ? null : _shareFullScreen,
-                  icon: _isSharing
-                      ? SizedBox(
-                    width: screenWidth * 0.04,
-                    height: screenWidth * 0.04,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                      : Icon(
-                    Icons.share,
-                    color: Theme.of(context).colorScheme.primary,
-                    size: screenWidth * 0.045,
-                  ),
-                  label: Text(
-                    _isSharing ? 'Sharing...' : 'Share',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: screenWidth * 0.04,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      side: BorderSide(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 3,
-                      ),
-                    ),
-                    elevation: 0,
-                    padding: EdgeInsets.symmetric(
-                      vertical: screenHeight * 0.015,
-                      horizontal: screenWidth * 0.1,
-                    ),
-                  ),
-                ),
-              ],
+              ),
+              elevation: 0,
+              padding: EdgeInsets.symmetric(
+                vertical: screenHeight * 0.015,
+                horizontal: screenWidth * 0.1,
+              ),
             ),
           ),
 
