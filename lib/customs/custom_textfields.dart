@@ -349,7 +349,7 @@ class _CustomPickerState extends State<CustomPicker> {
           padding: EdgeInsets.only(
               left: screenWidth * 0.05,
               right: screenWidth * 0.05,
-              top: screenHeight * 0.02,
+              top: screenHeight * 0.03,
               bottom: screenHeight * 0.01
           ),
           child: Row(
@@ -441,6 +441,7 @@ class _CustomPickerState extends State<CustomPicker> {
             horizontal: screenWidth * 0.04,
             vertical: screenHeight * 0.015
           ),
+          margin: EdgeInsets.only(bottom: screenHeight * 0.025),
           child: ElevatedButton(
             onPressed: selectedItem == null ? null : () => Get.back(result: selectedItem),
             style: ElevatedButton.styleFrom(
@@ -456,7 +457,7 @@ class _CustomPickerState extends State<CustomPicker> {
               style: TextStyle(
                 color: Colors.white,
                 fontSize: screenWidth * 0.04,
-                fontWeight: FontWeight.w500
+                fontWeight: FontWeight.w600
               ),
             ),
           ),
