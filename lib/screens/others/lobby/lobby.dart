@@ -33,14 +33,6 @@ class _LobbyState extends State<Lobby> {
           width: screenWidth,
           decoration: BoxDecoration(
             color: Colors.white
-            // gradient: LinearGradient(
-            //   colors: [
-            //     const Color(0xFFF09F1D),
-            //     const Color(0xFFD96717)
-            //   ],
-            //   begin: Alignment.topCenter,
-            //   end: Alignment.bottomCenter
-            // )
           ),
           child: Stack(
             children: [
