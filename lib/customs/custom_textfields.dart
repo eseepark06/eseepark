@@ -389,6 +389,7 @@ class _CustomPickerState extends State<CustomPicker> {
         ),
         Container(
           child: ListView.builder(
+            padding: EdgeInsets.zero,
             itemCount: widget.items.length,
             shrinkWrap: true,
             itemBuilder: (context, index) {

@@ -1,6 +1,7 @@
 import 'package:eseepark/customs/custom_textfields.dart';
 import 'package:eseepark/models/establishment_model.dart';
 import 'package:eseepark/models/parking_section_model.dart';
+import 'package:eseepark/screens/others/booking/partials/time_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -434,10 +435,8 @@ class _BookingState extends State<Booking> {
                               showModalBottomSheet(
                                   context: context,
                                   builder: (context) {
-                                    return CustomTimePicker(
-                                      onTimeSelected: (selectedTime) {
-                                        print("User selected time: ${selectedTime.format(context)}");
-                                      },
+                                    return SlotTimePicker(
+                                      slotId: widget.slotId,
                                     );
                                   }
                               );

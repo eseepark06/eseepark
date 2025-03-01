@@ -1,9 +1,14 @@
 import 'dart:async';
 
+import 'package:eseepark/models/reservation_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:wheel_slider/wheel_slider.dart';
 
 import '../globals.dart';
+import '../main.dart';
 
 class Section extends StatefulWidget {
   final String title;
@@ -209,72 +214,139 @@ class _ParkingSlotTimerState extends State<ParkingSlotTimer> {
   }
 }
 
-class CustomTimePicker extends StatefulWidget {
-  final Function(TimeOfDay)? onTimeSelected;
+class TestPicker extends StatefulWidget {
+  final String slotId;
 
-  CustomTimePicker({this.onTimeSelected});
+  const TestPicker({super.key, required this.slotId});
 
   @override
-  _CustomTimePickerState createState() => _CustomTimePickerState();
+  _TestPickerState createState() => _TestPickerState();
 }
 
-class _CustomTimePickerState extends State<CustomTimePicker> {
-  DateTime selectedDateTime = DateTime.now();
+class _TestPickerState extends State<TestPicker> {
+  final List<DateTime> timeSlots = List.generate(
+    48,
+        (index) => DateTime(2025, 1, 1, index ~/ 4, (index % 4) * 15),
+  );
 
-  // Define the times you want to disable
-  final List<TimeOfDay> disabledTimes = [
-    TimeOfDay(hour: 12, minute: 0),
-    TimeOfDay(hour: 13, minute: 0),
-    TimeOfDay(hour: 18, minute: 30),
-  ];
+  final FixedExtentScrollController _timeController = FixedExtentScrollController();
+  final FixedExtentScrollController _meridiemController = FixedExtentScrollController();
+  Stream<List<Map<String, dynamic>>>? slotReservationStream;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupParkingStream();
+  }
+
+  @override
+  void dispose() {
+    _timeController.dispose();
+    _meridiemController.dispose();
+    super.dispose();
+  }
+
+  void _setupParkingStream() {
+    slotReservationStream = Supabase.instance.client
+        .from('reservations')
+        .stream(primaryKey: ['slot_id'])
+        .eq('slot_id', widget.slotId)
+        .map((reservations) => reservations.isNotEmpty
+        ? [{'reservations': reservations.map((e) => Reservation.fromMap(e)).toList()}]
+        : []);
+
+    setState(() {});
+  }
+
+  String formatTime(DateTime time) {
+    return DateFormat('h:mm a').format(time);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 300,
-      child: Column(
-        children: [
-          Expanded(
-            child: CupertinoDatePicker(
-              mode: CupertinoDatePickerMode.time,
-              initialDateTime: DateTime(2024, 1, 1, 8, 0), // Default to 8:00 AM
-              use24hFormat: false,
-              minuteInterval: 1, // Allows selecting every minute
-              minimumDate: DateTime(2024, 1, 1, 8, 0),  // Starts at 8:00 AM
-              maximumDate: DateTime(2024, 1, 1, 22, 0), // Ends at 10:00 PM
-              onDateTimeChanged: (DateTime newDateTime) {
-                if (newDateTime.hour >= 10 && newDateTime.hour < 13) {
-                  return; // Ignore changes if within disabled range
-                }
-                setState(() {
-                  selectedDateTime = newDateTime;
-                });
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: slotReservationStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CupertinoActivityIndicator());
+        }
+
+        final reservations = snapshot.data?.isNotEmpty == true
+            ? snapshot.data!.first['reservations'] as List<Reservation>
+            : [];
+
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.4,
+          width: MediaQuery.of(context).size.width,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildTimeWheel(),
+                ],
+              )
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildTimeWheel() {
+    return Stack(
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.25,
+          child: ListWheelScrollView.useDelegate(
+            controller: _timeController,
+            itemExtent: MediaQuery.of(context).size.height * 0.045,
+            physics: const FixedExtentScrollPhysics(),
+            childDelegate: ListWheelChildBuilderDelegate(
+              builder: (context, index) {
+                final time = timeSlots[index];
+                return InkWell(
+                  borderRadius: BorderRadius.circular(30),
+                  onTap: () {
+                    _timeController.animateToItem(
+                      index,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  },
+                  child: Center(
+                    child: Text(
+                      formatTime(time),
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: MediaQuery.of(context).size.width * 0.05,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                );
               },
+              childCount: timeSlots.length,
             ),
           ),
-          ElevatedButton(
-            onPressed: () {
-              TimeOfDay selectedTime = TimeOfDay(
-                hour: selectedDateTime.hour,
-                minute: selectedDateTime.minute,
-              );
-
-              // Check if the selected time is in the disabled list
-              if (disabledTimes.any((time) =>
-              time.hour == selectedTime.hour && time.minute == selectedTime.minute)) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('This time is not available. Please choose another time.')),
-                );
-              } else {
-                widget.onTimeSelected?.call(selectedTime);
-                Navigator.pop(context);
-              }
-            },
-            child: Text("Select Time"),
+        ),
+        Positioned(
+          top: MediaQuery.of(context).size.height * 0.1,
+          bottom: MediaQuery.of(context).size.height * 0.1,
+          left: 0,
+          right: 0,
+          child: IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
           ),
-        ],
-      ),
+        )
+      ],
     );
   }
 }
+
 
