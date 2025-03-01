@@ -1,21 +1,27 @@
+import 'package:eseepark/customs/custom_textfields.dart';
 import 'package:eseepark/models/establishment_model.dart';
 import 'package:eseepark/models/parking_section_model.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../customs/custom_widgets.dart';
 import '../../../globals.dart';
 import '../../../main.dart';
 import '../../../models/parking_slot_model.dart';
+import '../../../models/vehicle_model.dart';
 
 class Booking extends StatefulWidget {
   final String slotId;
   final int availableSlots;
+  final double? distance;
 
   const Booking({
     super.key,
     required this.slotId,
-    required this.availableSlots
+    required this.availableSlots,
+    this.distance
   });
 
   @override
@@ -24,6 +30,7 @@ class Booking extends StatefulWidget {
 
 class _BookingState extends State<Booking> {
   final ScrollController scrollController = ScrollController();
+  final TextEditingController vehicleController = TextEditingController();
   Stream<List<Map<String, dynamic>>>? parkingStream;
 
   @override
@@ -40,7 +47,6 @@ class _BookingState extends State<Booking> {
         .asyncMap((slots) async {
       if (slots.isNotEmpty) {
         final slot = slots.first;
-
 
         if(slot['status'] != 'available') {
           print('Oops! This slot is already occupied');
@@ -60,11 +66,17 @@ class _BookingState extends State<Booking> {
             .eq('establishment_id', sectionData['establishment_id'])
             .single();
 
+        final vehicleData = await supabase
+            .from('vehicles')
+            .select()
+            .eq('user_id', supabase.auth.currentUser!.id);
+
         return [
           {
             'slot': ParkingSlot.fromMap(slot),
             'section': ParkingSection.fromMap(sectionData),
             'establishment': Establishment.fromMap(establishmentData),
+            'vehicles': vehicleData.isNotEmpty ? vehicleData.map((e) => Vehicle.fromMap(e)).toList()  : []
           }
         ];
       }
@@ -95,6 +107,7 @@ class _BookingState extends State<Booking> {
           final slot = data['slot'] as ParkingSlot;
           final section = data['section'] as ParkingSection;
           final establishment = data['establishment'] as Establishment;
+          final vehicles = data['vehicles'] as List<Vehicle>?;
 
           return CustomScrollView(
             controller: scrollController,
@@ -221,7 +234,7 @@ class _BookingState extends State<Booking> {
                                                     ),
                                                   ),
                                                   SizedBox(width: screenWidth * 0.02),
-                                                  Text("${widget.availableSlots} kilometers away",
+                                                  Text('${(widget.distance ?? 0).toStringAsPrecision(2)} km away',
                                                     style: TextStyle(
                                                       color: Colors.black54,
                                                       fontSize: screenSize * 0.01,
@@ -301,56 +314,6 @@ class _BookingState extends State<Booking> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Parking Details',
-                            style: TextStyle(
-                                color: Colors.black,
-                                fontSize: screenSize * 0.015,
-                                fontWeight: FontWeight.bold
-                            ),
-                          ),
-                          SizedBox(height: screenHeight * 0.02),
-                          Text('Operation',
-                            style: TextStyle(
-                                color: Color(0xFF808080).withValues(alpha: 0.7),
-                                fontSize: screenSize * 0.011,
-                                fontWeight: FontWeight.w500
-                            ),
-                          ),
-                          SizedBox(height: screenHeight * 0.01),
-                          Row(
-                            children: [
-                              Text('Open Now • ',
-                                style: TextStyle(
-                                    color: Theme.of(context).colorScheme.primary,
-                                    fontSize: screenSize * 0.012,
-                                    fontWeight: FontWeight.w700
-                                ),
-                              ),
-                              Text('10:00 AM - 11:30 PM',
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: screenSize * 0.012,
-                                    fontWeight: FontWeight.w500
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: screenHeight * 0.02),
-                    Container(
-                      width: screenWidth,
-                      padding: EdgeInsets.only(
-                        top: screenHeight * 0.02,
-                        left: screenWidth * 0.04,
-                        right: screenWidth * 0.04,
-                        bottom: screenHeight * 0.02,
-                      ),
-                      decoration: const BoxDecoration(color: Colors.white),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
                           Text('Slot Details',
                             style: TextStyle(
                                 color: Colors.black,
@@ -394,28 +357,44 @@ class _BookingState extends State<Booking> {
                             ),
                           ),
                           SizedBox(height: screenHeight * 0.01),
-                          Container(
-                            width: screenWidth,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFD1D1D1).withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: EdgeInsets.symmetric(
-                                vertical: screenHeight * 0.013,
-                                horizontal: screenWidth * 0.05
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('Select a Vehicle',
-                                  style: TextStyle(
-                                      color: const Color(0xFF808080).withValues(alpha: 0.9),
-                                      fontSize: screenSize * 0.012,
-                                      fontWeight: FontWeight.w500
+                          InkWell(
+                            onTap: () {
+                              showModalBottomSheet(
+                                  context: context,
+                                  builder: (context) {
+                                    return CustomPicker(
+                                        items: ((vehicles ?? []).isNotEmpty)
+                                            ? (vehicles ?? []).map((vehicle) => vehicle.name).toList()
+                                            : [],
+                                        title: 'Select a Vehicle',
+                                        withData: vehicleController
+                                    );
+                                  }
+                              );
+                            },
+                            child: Container(
+                              width: screenWidth,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFD1D1D1).withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              padding: EdgeInsets.symmetric(
+                                  vertical: screenHeight * 0.013,
+                                  horizontal: screenWidth * 0.05
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Select a Vehicle',
+                                    style: TextStyle(
+                                        color: const Color(0xFF808080).withValues(alpha: 0.9),
+                                        fontSize: screenSize * 0.012,
+                                        fontWeight: FontWeight.w500
+                                    ),
                                   ),
-                                ),
-                                Icon(Icons.arrow_drop_down, color: const Color(0xFF808080).withValues(alpha: 0.9),)
-                              ],
+                                  Icon(Icons.arrow_drop_down, color: const Color(0xFF808080).withValues(alpha: 0.9),)
+                                ],
+                              ),
                             ),
                           ),
                         ],
@@ -434,7 +413,7 @@ class _BookingState extends State<Booking> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Parking Type Details',
+                          Text('Reservation Details',
                             style: TextStyle(
                                 color: Colors.black,
                                 fontSize: screenSize * 0.015,
@@ -442,7 +421,7 @@ class _BookingState extends State<Booking> {
                             ),
                           ),
                           SizedBox(height: screenHeight * 0.02),
-                          Text('Section - Slot No. & Floor',
+                          Text('Specify Entrance Time',
                             style: TextStyle(
                                 color: Color(0xFF808080).withValues(alpha: 0.7),
                                 fontSize: screenSize * 0.011,
@@ -450,57 +429,106 @@ class _BookingState extends State<Booking> {
                             ),
                           ),
                           SizedBox(height: screenHeight * 0.01),
-                          Row(
-                            children: [
-                              Text('${section.name}-${slot.slotNumber} • ',
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: screenSize * 0.012,
-                                    fontWeight: FontWeight.w700
-                                ),
+                          InkWell(
+                            onTap: () {
+                              showModalBottomSheet(
+                                  context: context,
+                                  builder: (context) {
+                                    return CustomTimePicker(
+                                      onTimeSelected: (selectedTime) {
+                                        print("User selected time: ${selectedTime.format(context)}");
+                                      },
+                                    );
+                                  }
+                              );
+                            },
+                            child: Container(
+                              width: screenWidth,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFD1D1D1).withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                              Text('Floor ${section.floorLevel}',
-                                style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: screenSize * 0.012,
-                                    fontWeight: FontWeight.w500
-                                ),
+                              padding: EdgeInsets.symmetric(
+                                  vertical: screenHeight * 0.013,
+                                  horizontal: screenWidth * 0.05
                               ),
-                            ],
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text('Select a Time',
+                                    style: TextStyle(
+                                        color: const Color(0xFF808080).withValues(alpha: 0.9),
+                                        fontSize: screenSize * 0.012,
+                                        fontWeight: FontWeight.w500
+                                    ),
+                                  ),
+                                  Icon(Icons.access_time, color: const Color(0xFF808080).withValues(alpha: 0.9),)
+                                ],
+                              ),
+                            ),
                           ),
                           SizedBox(height: screenHeight * 0.02),
-                          Text('Vehicle',
+                          Text('Select Parking Duration',
                             style: TextStyle(
                                 color: Color(0xFF808080).withValues(alpha: 0.7),
                                 fontSize: screenSize * 0.011,
                                 fontWeight: FontWeight.w500
                             ),
                           ),
-                          SizedBox(height: screenHeight * 0.01),
                           Container(
-                            width: screenWidth,
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFD1D1D1).withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: EdgeInsets.symmetric(
-                                vertical: screenHeight * 0.013,
-                                horizontal: screenWidth * 0.05
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('Select a Vehicle',
-                                  style: TextStyle(
-                                      color: const Color(0xFF808080).withValues(alpha: 0.9),
-                                      fontSize: screenSize * 0.012,
-                                      fontWeight: FontWeight.w500
+                            height: screenWidth * 0.23,
+                            margin: EdgeInsets.only(top: screenHeight * 0.015),
+                            child: ListView.builder(
+                              itemCount: 8,
+                              shrinkWrap: true,
+                              scrollDirection: Axis.horizontal,
+                              itemBuilder: (context, index) {
+                                return InkWell(
+                                  onTap: () {
+
+                                  },
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Container(
+                                    height: screenWidth * 0.23,
+                                    width: screenWidth * 0.23,
+                                    margin: EdgeInsets.only(right: screenWidth * 0.03),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFD1D1D1).withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              TextSpan(text: '₱', style: TextStyle(fontFamily: 'HelveticaNeue')),
+                                              TextSpan(text: '${(index + 1) * 20}.00'),
+                                            ],
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: screenSize * 0.013,
+                                              height: 1,
+                                              color: Theme.of(context).colorScheme.primary
+                                            ),
+                                          ),
+                                        ),
+                                        Text('${index + 1} hour${index + 1 > 1 ? 's' : ''}',
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: screenSize * 0.01,
+                                            height: 1,
+                                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.6)
+                                          ),
+                                        )
+                                      ],
+                                    )
                                   ),
-                                ),
-                                Icon(Icons.arrow_drop_down, color: const Color(0xFF808080).withValues(alpha: 0.9),)
-                              ],
+                                );
+                              },
                             ),
-                          ),
+                          )
                         ],
                       ),
                     ),

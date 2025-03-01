@@ -49,10 +49,12 @@ class Slot {
 
 class ParkingSheet extends StatefulWidget {
   final String establishmentId;
+  final double? distance;
 
   const ParkingSheet({
     super.key,
-    required this.establishmentId
+    required this.establishmentId,
+    this.distance
   });
 
   @override
@@ -710,6 +712,8 @@ class _ParkingSheetState extends State<ParkingSheet> {
                               (section) => section.parkingSlots?.any((slot) => slot.id == selectedSlot) ?? false
                           );
 
+                          print('clicked');
+
                           if (checkSlotAvailability?.parkingSlots?.firstWhere((slot) => slot.id == selectedSlot).slotStatus != 'available') {
 
                             Get.snackbar(
@@ -729,7 +733,9 @@ class _ParkingSheetState extends State<ParkingSheet> {
 
                             return;
                           } else {
-                            Get.to(() => Booking(slotId: selectedSlot, availableSlots: (establishment.parkingSections
+                            print('happening');
+                            Get.back();
+                            Get.to(() => Booking(slotId: selectedSlot, distance: widget.distance, availableSlots: (establishment.parkingSections
                                 ?.fold<int>(0, (sum, section) => sum + (section.parkingSlots?.where((slot) => slot.slotStatus == 'available').length ?? 0)) ?? 0)),
                               transition: Transition.rightToLeft,
                               duration: const Duration(milliseconds: 300),

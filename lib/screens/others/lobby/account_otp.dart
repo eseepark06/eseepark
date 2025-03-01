@@ -29,6 +29,7 @@ class OTPAccount extends StatefulWidget {
 }
 
 class _OTPAccountState extends State<OTPAccount> {
+  List<TextEditingController> controllers = List.generate(6, (index) => TextEditingController());
   final codeController = TextEditingController();
   String resendText = 'Resend Code';
   bool processingOtp = false;
@@ -82,6 +83,38 @@ class _OTPAccountState extends State<OTPAccount> {
     // TODO: implement initState
     super.initState();
     checkIfCodeIntervalNotNull();
+
+    for (int i = 0; i < controllers.length; i++) {
+      controllers[i].addListener(() {
+        if (controllers[i].text.isEmpty && i > 0) {
+          FocusScope.of(context).previousFocus(); // Move back if empty
+
+
+          print('controllers[i].text: ${controllers[i].text}');
+
+        } else {
+          if (i < controllers.length - 1) {
+            FocusScope.of(context).nextFocus(); // Move forward if not empty
+          }
+          print('controllers[i].text: ${controllers[i].text}');
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+
+    if (_timer != null) {
+      _timer!.cancel();
+    }
+
+    for (int i = 0; i < controllers.length; i++) {
+      controllers[i].dispose();
+    }
+
+    codeController.dispose();
   }
 
   @override
@@ -145,32 +178,28 @@ class _OTPAccountState extends State<OTPAccount> {
                           Container(
                             child: OtpTextField(
                               numberOfFields: 6,
+                              handleControllers: (controllersList) {
+                                controllers = controllersList.whereType<TextEditingController>().toList();
+                              },
                               showFieldAsBox: true,
                               borderWidth: 0,
                               cursorColor: Theme.of(context).colorScheme.primary,
                               borderColor: Colors.transparent,
                               keyboardType: TextInputType.number,
                               borderRadius: BorderRadius.circular(10),
-                              fillColor: Color(0xFFB2B2B2).withValues(alpha: 0.4),
+                              fillColor: Color(0xFFB2B2B2).withOpacity(0.4),
                               filled: true,
                               inputFormatters: [
                                 LengthLimitingTextInputFormatter(1),
-                                FilteringTextInputFormatter.digitsOnly
+                                FilteringTextInputFormatter.digitsOnly,
                               ],
                               disabledBorderColor: Colors.transparent,
                               focusedBorderColor: Colors.transparent,
                               enabledBorderColor: Colors.transparent,
-                              decoration: InputDecoration(
-                                border: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                errorBorder: InputBorder.none,
-                                disabledBorder: InputBorder.none,
-                              ),
                               textStyle: TextStyle(
                                 color: Theme.of(context).colorScheme.primary,
-                                fontSize: screenSize * 0.015,
-                                fontWeight: FontWeight.bold
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
                               ),
                               onCodeChanged: (String code) {
                                 setState(() {
