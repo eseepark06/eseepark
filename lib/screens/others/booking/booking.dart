@@ -91,6 +91,34 @@ class _BookingState extends State<Booking> {
     setState(() {});
   }
 
+  String getFormattedWeekday(int weekday) {
+    switch (weekday) {
+      case 1:
+        return 'Mon';
+      case 2:
+        return 'Tue';
+      case 3:
+        return 'Wed';
+      case 4:
+        return 'Thu';
+      case 5:
+        return 'Fri';
+      case 6:
+        return 'Sat';
+      case 7:
+        return 'Sun';
+      default:
+        return '';
+    }
+  }
+
+  String getFormattedTime(String time) {
+    // Split the time string by the colon
+    List<String> parts = time.split(':');
+    // Return the first part, which is the hour
+    return parts.isNotEmpty ? parts[0] : '';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -448,6 +476,8 @@ class _BookingState extends State<Booking> {
                                               return SlotTimePicker(
                                                 slotId: widget.slotId,
                                                 selectedTimeStatus: selectedTimeStatus,
+                                                startHour: int.parse(getFormattedTime(establishment.operatingHours.where((element) => element.day == getFormattedWeekday(DateTime.now().weekday)).first.open)),
+                                                endHour: int.parse(getFormattedTime(establishment.operatingHours.where((element) => element.day == getFormattedWeekday(DateTime.now().weekday)).first.close)),
                                               );
                                             }
                                         ).then((val) {
