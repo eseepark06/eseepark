@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:wheel_slider/wheel_slider.dart';
 import '../../../../globals.dart';
@@ -20,16 +21,19 @@ class SlotTimePicker extends StatefulWidget {
 
 class _SlotTimePickerState extends State<SlotTimePicker> {
   final List<DateTime> timeSlots = List.generate(
-    24, // 24 slots for 30-minute intervals in 12 hours
+    24,
         (index) => DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, index ~/ 2, (index % 2) * 30),
   );
   final List<String> meridiemIndicator = ['AM', 'PM'];
-  int selectedMeridiemIndex = 0; // 0 = AM, 1 = PM
+  DateTime slotTime = DateTime.now();
+  int selectedMeridiemIndex = 0;
   int selectedTimeIndex = 0;
   final FixedExtentScrollController _timeController = FixedExtentScrollController();
   final FixedExtentScrollController _meridiemController = FixedExtentScrollController();
   Stream<List<Map<String, dynamic>>>? slotReservationStream;
   Set<String> reservedTimes = {};
+
+  bool isAllowed = false;
 
   @override
   void initState() {
@@ -70,7 +74,7 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
     return DateFormat('h:mm').format(time);
   }
 
-  String formatSelectedTime() {
+  String formatSelectedTime({String format = 'yyyy-MM-dd h:mm a'}) {
     DateTime selectedTime = timeSlots[selectedTimeIndex];
     String meridiem = meridiemIndicator[selectedMeridiemIndex];
 
@@ -89,7 +93,7 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
       selectedTime.minute,
     );
 
-    return DateFormat('yyyy-MM-dd h:mm a').format(finalTime);
+    return DateFormat(format).format(finalTime);
   }
 
   int getAvailableSlots(DateTime selectedTime, List<Reservation> reservations) {
@@ -117,10 +121,9 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
         slot.minute,
       );
 
-      print('Adjusted Slot Time: $adjustedSlotTime');
 
       if (adjustedSlotTime.isBefore(selectedTime)) {
-        print('Skipping slot: $adjustedSlotTime (before selected time of $selectedTime)');
+        // print('Skipping slot: $adjustedSlotTime (before selected time of $selectedTime)');
         continue;
       }
 
@@ -144,22 +147,22 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
             adjustedSlotTime.isAtSameMomentAs(reservationStartTime) ||
             adjustedSlotTime.isAtSameMomentAs(reservationEndTime);
 
-                print('Slot: $adjustedSlotTime | Reservation Start: $reservationStartTime | Reservation End: $reservationEndTime | Overlaps: $overlaps');
+                // print('Slot: $adjustedSlotTime | Reservation Start: $reservationStartTime | Reservation End: $reservationEndTime | Overlaps: $overlaps');
 
         return overlaps;
       });
 
       if (isReserved) {
-        print('Slot: $adjustedSlotTime is reserved. Stopping count.');
+        // print('Slot: $adjustedSlotTime is reserved. Stopping count.');
         break;
       }
 
-      print('Slot: $adjustedSlotTime is available.');
+      // print('Slot: $adjustedSlotTime is available.');
       availableCount++;
     }
 
     if (selectedMeridiemIndex == 0) {
-      print('Checking PM slots...');
+      // print('Checking PM slots...');
       for (DateTime slot in timeSlots) {
         int hour = slot.hour + 12;
         if (hour == 24) hour = 12;
@@ -249,10 +252,52 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
             : [];
 
         return Container(
-          height: screenHeight * 0.4,
+          height: screenHeight * 0.45,
           width: screenWidth,
           child: Column(
             children: [
+              Container(
+                padding: EdgeInsets.only(
+                    left: screenWidth * 0.05,
+                    right: screenWidth * 0.05,
+                    top: screenHeight * 0.03,
+                    bottom: screenHeight * 0.01
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: Text('Select a Time',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: screenWidth * 0.05
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () => Get.back(),
+                      borderRadius: BorderRadius.circular(100),
+                      child: Container(
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 2
+                            )
+                        ),
+                        padding: EdgeInsets.all(screenSize * 0.001),
+                        child: Icon(Icons.close,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: screenWidth * 0.06
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -269,7 +314,70 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
                             setState(() {
                               selectedTimeIndex = val;
                             });
-                            print(formatSelectedTime()); // Debugging
+
+                            int hour = timeSlots[val].hour;
+                            int minute = timeSlots[val].minute;
+
+                            // Adjust hour based on selected meridiem
+                            if (selectedMeridiemIndex == 1) { // 1 means PM
+                              if (hour != 12) {
+                                hour += 12; // Convert to 24-hour format
+                              }
+                            } else { // AM case
+                              if (hour == 12) {
+                                hour = 0; // Midnight case
+                              }
+                            }
+
+                            // Create a DateTime object for the current time slot in UTC
+                            slotTime = DateTime.utc(
+                              timeSlots[val].year,
+                              timeSlots[val].month,
+                              timeSlots[val].day,
+                              hour,
+                              minute,
+                            );
+
+                            // Check if the slot time is reserved based on start and end times
+                            bool isReserved = reservations.any((reservation) {
+                              if (reservation.startTime.isBefore(reservation.endTime)) {
+                                DateTime reservationStartTime = DateTime.utc(
+                                  reservation.startTime.year,
+                                  reservation.startTime.month,
+                                  reservation.startTime.day,
+                                  reservation.startTime.hour,
+                                  reservation.startTime.minute,
+                                );
+                                DateTime reservationEndTime = DateTime.utc(
+                                  reservation.endTime.year,
+                                  reservation.endTime.month,
+                                  reservation.endTime.day,
+                                  reservation.endTime.hour,
+                                  reservation.endTime.minute,
+                                );
+
+                                bool overlaps = (slotTime.isAfter(reservationStartTime) && slotTime.isBefore(reservationEndTime)) ||
+                                    (slotTime.isAtSameMomentAs(reservationStartTime) || slotTime.isAtSameMomentAs(reservationEndTime)) ||
+                                    (reservationStartTime.isBefore(slotTime) && reservationEndTime.isAfter(slotTime)) ||
+                                    (slotTime.isAtSameMomentAs(reservationStartTime)); // Include exact match for startTime
+
+                                // print('Is reserved: $overlaps');
+                                return overlaps;
+                              }
+                              return false; // Not a valid reservation
+                            });
+
+                            setState(() {
+                              isAllowed = !isReserved;
+                            });
+
+
+
+                            print('Time Slot Changed to  : $slotTime');
+
+                            int availableSlots = getAvailableSlots(slotTime, reservations as List<Reservation>);
+                            print('Available slots for booking: $availableSlots');
+
                           },
                           enableAnimation: true,
                           hapticFeedbackType: HapticFeedbackType.vibrate,
@@ -296,7 +404,7 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
                             }
 
                             // Create a DateTime object for the current time slot in UTC
-                            DateTime slotTime = DateTime.utc(
+                            slotTime = DateTime.utc(
                               time.year,
                               time.month,
                               time.day,
@@ -336,14 +444,6 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
                             return InkWell(
                               borderRadius: BorderRadius.circular(30),
                               onTap: () {
-                                // Get available slots when a time is selected
-                                int availableSlots = getAvailableSlots(slotTime, reservations as List<Reservation>);
-                                print('Available slots for booking: $availableSlots');
-
-                                // Optionally, show a dialog or toast message
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Available slots for booking: $availableSlots')),
-                                );
 
                                 WidgetsBinding.instance.addPostFrameCallback((_) async {
                                   _timeController.animateToItem(index,
@@ -402,6 +502,63 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
                               selectedMeridiemIndex = val;
                             });
                             print(formatSelectedTime());
+
+                            int hour = timeSlots[selectedTimeIndex].hour;
+                            int minute = timeSlots[selectedTimeIndex].minute;
+
+                            if (selectedMeridiemIndex == 1) {
+                              if (hour != 12) {
+                                hour += 12;
+                              }
+                            } else { // AM case
+                              if (hour == 12) {
+                                hour = 0;
+                              }
+                            }
+
+                            slotTime = DateTime.utc(
+                              timeSlots[selectedTimeIndex].year,
+                              timeSlots[selectedTimeIndex].month,
+                              timeSlots[selectedTimeIndex].day,
+                              hour,
+                              minute,
+                            );
+
+                            // Check if the slot time is reserved based on start and end times
+                            bool isReserved = reservations.any((reservation) {
+                              if (reservation.startTime.isBefore(reservation.endTime)) {
+                                DateTime reservationStartTime = DateTime.utc(
+                                  reservation.startTime.year,
+                                  reservation.startTime.month,
+                                  reservation.startTime.day,
+                                  reservation.startTime.hour,
+                                  reservation.startTime.minute,
+                                );
+                                DateTime reservationEndTime = DateTime.utc(
+                                  reservation.endTime.year,
+                                  reservation.endTime.month,
+                                  reservation.endTime.day,
+                                  reservation.endTime.hour,
+                                  reservation.endTime.minute,
+                                );
+
+                                bool overlaps = (slotTime.isAfter(reservationStartTime) && slotTime.isBefore(reservationEndTime)) ||
+                                    (slotTime.isAtSameMomentAs(reservationStartTime) || slotTime.isAtSameMomentAs(reservationEndTime)) ||
+                                    (reservationStartTime.isBefore(slotTime) && reservationEndTime.isAfter(slotTime)) ||
+                                    (slotTime.isAtSameMomentAs(reservationStartTime)); // Include exact match for startTime
+
+                                // print('Is reserved: $overlaps');
+                                return overlaps;
+                              }
+                              return false; // Not a valid reservation
+                            });
+
+                            setState(() {
+                              isAllowed = !isReserved;
+                            });
+
+                            int availableSlots = getAvailableSlots(slotTime, reservations as List<Reservation>);
+                            print('Available slots for booking: $availableSlots');
                           },
                           controller: _meridiemController,
                           enableAnimation: true,
@@ -460,6 +617,35 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
                   ),
                 ],
               ),
+              Container(
+                width: screenWidth,
+                padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.04,
+                    vertical: screenHeight * 0.015
+                ),
+                margin: EdgeInsets.only(bottom: screenHeight * 0.025),
+                child: ElevatedButton(
+                  onPressed: isAllowed ? () {
+
+                  } : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)
+                    ),
+                    padding: EdgeInsets.symmetric(
+                        vertical: screenHeight * 0.013
+                    ),
+                  ),
+                  child: Text('Select ${formatSelectedTime(format: 'h:mm a')}',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: screenWidth * 0.04,
+                        fontWeight: FontWeight.w600
+                    ),
+                  ),
+                ),
+              )
             ],
           ),
         );
