@@ -9,10 +9,12 @@ import '../../../../models/reservation_model.dart';
 
 class SlotTimePicker extends StatefulWidget {
   final String slotId;
+  final Map<String, dynamic> selectedTimeStatus;
 
   const SlotTimePicker({
     super.key,
     required this.slotId,
+    required this.selectedTimeStatus
   });
 
   @override
@@ -20,6 +22,7 @@ class SlotTimePicker extends StatefulWidget {
 }
 
 class _SlotTimePickerState extends State<SlotTimePicker> {
+  Map<String, dynamic> selectedSlotStatus = {};
   final List<DateTime> timeSlots = List.generate(
     24,
         (index) => DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day, index ~/ 2, (index % 2) * 30),
@@ -32,8 +35,11 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
   final FixedExtentScrollController _meridiemController = FixedExtentScrollController();
   Stream<List<Map<String, dynamic>>>? slotReservationStream;
   Set<String> reservedTimes = {};
+  int availableSlots = 0;
 
   bool isAllowed = false;
+
+  bool isScrolled = false;
 
   @override
   void initState() {
@@ -43,7 +49,6 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
 
   void initializeSetup() async {
     await _setupParkingStream();
-    setTime();
   }
 
   Future<void> _setupParkingStream() async {
@@ -109,6 +114,10 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
     int availableCount = 0;
 
     print('Selected Time: $selectedTime');
+
+    setState(() {
+      slotTime = selectedTime;
+    });
 
     for (DateTime slot in timeSlots) {
       int hour = slot.hour;
@@ -230,20 +239,11 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
     print('Total available slots from selected time: $availableCount');
     return availableCount;
   }
-  // List<DateTime> generateTimeSlots() {
-  //   DateTime now = DateTime.now();
-  //   List<DateTime> slots = [];
-  //   for (int i = 0; i < 24; i++) {
-  //     DateTime slotTime = DateTime(now.year, now.month, now.day, i ~/ 2, (i % 2) * 30);
-  //     slots.add(slotTime);
-  //   }
-  //   return slots;
-  // }
 
   void setTime() {
     DateTime time = DateTime.now();
 
-    Future.delayed(Duration(milliseconds: 200), () {
+    Future.delayed(Duration(milliseconds: 300), () {
       setState(() {
         if (time.hour < 12) {
           print('AM');
@@ -300,6 +300,30 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
         print('No matching time slot found for hour: $adjustedHour and minute: $adjustedMinute');
       }
     });
+
+    isScrolled = true;
+  }
+
+  void setTimeStatus() async {
+      setState(() {
+        selectedSlotStatus = widget.selectedTimeStatus;
+        selectedMeridiemIndex = widget.selectedTimeStatus['selectedMeridiemIndex'];
+        selectedTimeIndex = widget.selectedTimeStatus['selectedTimeIndex'];
+        slotTime = widget.selectedTimeStatus['slotTime'];
+      });
+
+    Future.delayed(Duration(milliseconds: 300), () {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        _meridiemController.animateToItem(selectedMeridiemIndex,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut);
+        _timeController.animateToItem(selectedTimeIndex,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut);
+      });
+    });
+
+    isScrolled = true;
   }
 
   @override
@@ -322,6 +346,16 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
             ? snapshot.data!.first['reservations'] as List<Reservation>
             : [];
 
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          if (!isScrolled) {
+            if(widget.selectedTimeStatus.isNotEmpty) {
+              setTimeStatus();
+            } else {
+              setTime();
+            }
+          }
+        });
+
         return Container(
           height: screenHeight * 0.45,
           width: screenWidth,
@@ -338,7 +372,7 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Flexible(
-                      child: Text('Select a Time',
+                      child: Text('Select Entry Time',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
@@ -409,6 +443,7 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
                               minute,
                             );
 
+
                             // Get the current time in UTC for comparison
                             DateTime now = DateTime.utc(
                               DateTime.now().year,
@@ -461,7 +496,12 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
                             print('Time Slot Changed to: $slotTime');
                             print('Is Past: $isPast');
                             print('Is Reserved: $isReserved');
-                            print('Available slots for booking: ${getAvailableSlots(slotTime, reservations as List<Reservation>)}');
+                            int slotsAvail = getAvailableSlots(slotTime, reservations as List<Reservation>);
+                            print('Available slots for booking 2: $slotsAvail');
+
+                            setState(() {
+                              availableSlots = slotsAvail;
+                            });
                           },
                           enableAnimation: true,
                           hapticFeedbackType: HapticFeedbackType.vibrate,
@@ -488,7 +528,7 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
                             }
 
                             // Create a DateTime object for the current time slot in UTC
-                            slotTime = DateTime.utc(
+                            DateTime slotTime = DateTime.utc(
                               time.year,
                               time.month,
                               time.day,
@@ -671,8 +711,12 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
                               isAllowed = !isReserved && !isPast;
                             });
 
-                            int availableSlots = getAvailableSlots(slotTime, reservations as List<Reservation>);
-                            print('Available slots for booking: $availableSlots');
+                            int slotsAvail = getAvailableSlots(slotTime, reservations as List<Reservation>);
+                            print('Available slots for booking 2: $slotsAvail');
+
+                            setState(() {
+                              availableSlots = slotsAvail;
+                            });
                           },
                           controller: _meridiemController,
                           enableAnimation: true,
@@ -740,7 +784,16 @@ class _SlotTimePickerState extends State<SlotTimePicker> {
                 margin: EdgeInsets.only(bottom: screenHeight * 0.025),
                 child: ElevatedButton(
                   onPressed: isAllowed ? () {
+                    selectedSlotStatus = {
+                      'selectedTimeIndex': selectedTimeIndex,
+                      'selectedMeridiemIndex': selectedMeridiemIndex,
+                      'slotTime': slotTime,
+                      'availableSlots': availableSlots
+                    };
 
+                    print('Booking: $selectedSlotStatus');
+
+                    Get.back(result: selectedSlotStatus);
                   } : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.primary,
